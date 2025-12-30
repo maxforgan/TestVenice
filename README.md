@@ -11,6 +11,7 @@ A comprehensive interface for interacting with the Venice AI API. Venice AI prov
 - **Multiple Capabilities**:
   - Chat with various LLM models
   - Generate images with text prompts
+  - Generate videos (text-to-video and image-to-video)
   - Text-to-speech conversion
   - Model browsing and selection
 
@@ -104,6 +105,18 @@ python3 venice_cli.py models
 python3 venice_cli.py tts "Hello, this is Venice AI" --output hello.mp3
 ```
 
+#### Generate Video from Text
+
+```bash
+python3 venice_cli.py video-text "A butterfly flying through a magical forest" --model <video-model>
+```
+
+#### Generate Video from Image
+
+```bash
+python3 venice_cli.py video-image photo.jpg --model <video-model> --motion-prompt "Camera slowly zooms in"
+```
+
 ### Python Library
 
 Use the Venice client in your own Python scripts:
@@ -159,6 +172,10 @@ The interface will automatically select appropriate models for chat and image ge
 ├── example.py          # Usage examples
 ├── README.md           # This file
 ├── MOBILE_GUIDE.md     # Mobile setup instructions
+├── VIDEO_GUIDE.md      # Video generation guide
+├── CHAT_FEATURES.md    # Chat interface features
+├── MODEL_GUIDE.md      # Model detection guide
+├── DEPLOYMENT.md       # Deployment instructions
 ├── requirements.txt    # Python dependencies
 └── .env.example        # Example environment file
 ```
