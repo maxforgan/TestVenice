@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venice AI Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .panel {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .settings-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .chat-container {
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+        }
+
+        .message.assistant {
+            background: white;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .message-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input input {
+            flex: 1;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .image-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .image-card .info {
+            padding: 10px;
+            background: #f8f9fa;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c00;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        .success {
+            background: #efe;
+            border: 2px solid #cfc;
+            color: #060;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Venice AI Interface</h1>
+            <p>Private, Decentralized AI at Your Fingertips</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('settings')">Settings</button>
+            <button class="tab" onclick="switchTab('chat')">Chat</button>
+            <button class="tab" onclick="switchTab('image')">Image Generation</button>
+            <button class="tab" onclick="switchTab('models')">Models</button>
+        </div>
+
+        <!-- Settings Panel -->
+        <div id="settings-panel" class="panel active">
+            <h2>API Configuration</h2>
+            <div class="settings-section">
+                <div class="form-group">
+                    <label for="api-key">Venice API Key</label>
+                    <input type="password" id="api-key" placeholder="Enter your Venice API key">
+                    <small>Get your API key from <a href="https://venice.ai" target="_blank">venice.ai</a></small>
+                </div>
+                <div class="form-group">
+                    <label for="api-base-url">API Base URL</label>
+                    <input type="text" id="api-base-url" value="https://api.venice.ai/api/v1" placeholder="API base URL">
+                </div>
+                <button onclick="saveSettings()">Save Settings</button>
+                <div id="settings-message"></div>
+            </div>
+        </div>
+
+        <!-- Chat Panel -->
+        <div id="chat-panel" class="panel">
+            <h2>Chat with Venice AI</h2>
+            <div class="form-group">
+                <label for="chat-model">Model</label>
+                <select id="chat-model">
+                    <option value="llama-3.3-70b">Llama 3.3 70B</option>
+                    <option value="llama-3.1-405b">Llama 3.1 405B</option>
+                    <option value="nous-hermes-3">Nous Hermes 3</option>
+                </select>
+            </div>
+            <div class="chat-container">
+                <div class="messages" id="chat-messages"></div>
+                <div class="message-input">
+                    <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="handleChatKeypress(event)">
+                    <button onclick="sendMessage()">Send</button>
+                    <button onclick="clearChat()">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Generation Panel -->
+        <div id="image-panel" class="panel">
+            <h2>Generate Images</h2>
+            <div class="form-group">
+                <label for="image-model">Model</label>
+                <select id="image-model">
+                    <option value="fluently-xl">Fluently XL</option>
+                    <option value="flux-pro">Flux Pro</option>
+                    <option value="stable-diffusion">Stable Diffusion</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="image-prompt">Prompt</label>
+                <textarea id="image-prompt" placeholder="Describe the image you want to generate..."></textarea>
+            </div>
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label for="image-width">Width</label>
+                    <input type="number" id="image-width" value="1024" min="256" max="2048" step="64">
+                </div>
+                <div>
+                    <label for="image-height">Height</label>
+                    <input type="number" id="image-height" value="1024" min="256" max="2048" step="64">
+                </div>
+            </div>
+            <button onclick="generateImage()">Generate Image</button>
+            <div id="image-result"></div>
+        </div>
+
+        <!-- Models Panel -->
+        <div id="models-panel" class="panel">
+            <h2>Available Models</h2>
+            <button onclick="listModels()">Refresh Models List</button>
+            <div id="models-result"></div>
+        </div>
+    </div>
+
+    <script>
+        let chatMessages = [];
+        let settings = {
+            apiKey: '',
+            baseUrl: 'https://api.venice.ai/api/v1'
+        };
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('veniceSettings');
+            if (saved) {
+                settings = JSON.parse(saved);
+                document.getElementById('api-key').value = settings.apiKey;
+                document.getElementById('api-base-url').value = settings.baseUrl;
+            }
+        }
+
+        function saveSettings() {
+            settings.apiKey = document.getElementById('api-key').value;
+            settings.baseUrl = document.getElementById('api-base-url').value;
+            localStorage.setItem('veniceSettings', JSON.stringify(settings));
+            document.getElementById('settings-message').innerHTML = '<div class="success">Settings saved successfully!</div>';
+            setTimeout(() => {
+                document.getElementById('settings-message').innerHTML = '';
+            }, 3000);
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-panel`).classList.add('active');
+        }
+
+        async function apiRequest(endpoint, method = 'GET', body = null) {
+            if (!settings.apiKey) {
+                throw new Error('API key not set. Please configure it in Settings.');
+            }
+
+            const options = {
+                method,
+                headers: {
+                    'Authorization': `Bearer ${settings.apiKey}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            const response = await fetch(`${settings.baseUrl}${endpoint}`, options);
+
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`API Error: ${response.status} - ${error}`);
+            }
+
+            return response.json();
+        }
+
+        function handleChatKeypress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            chatMessages.push({ role: 'user', content: message });
+            displayMessage('user', message);
+            input.value = '';
+
+            try {
+                const model = document.getElementById('chat-model').value;
+                const response = await apiRequest('/chat/completions', 'POST', {
+                    model,
+                    messages: chatMessages,
+                    temperature: 0.7
+                });
+
+                const assistantMessage = response.choices[0].message.content;
+                chatMessages.push({ role: 'assistant', content: assistantMessage });
+                displayMessage('assistant', assistantMessage);
+
+            } catch (error) {
+                displayMessage('assistant', `Error: ${error.message}`, true);
+            }
+        }
+
+        function displayMessage(role, content, isError = false) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            if (isError) messageDiv.style.background = '#fee';
+            messageDiv.textContent = content;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function clearChat() {
+            chatMessages = [];
+            document.getElementById('chat-messages').innerHTML = '';
+        }
+
+        async function generateImage() {
+            const prompt = document.getElementById('image-prompt').value.trim();
+            if (!prompt) {
+                alert('Please enter a prompt');
+                return;
+            }
+
+            const resultDiv = document.getElementById('image-result');
+            resultDiv.innerHTML = '<div class="loading">Generating image...</div>';
+
+            try {
+                const model = document.getElementById('image-model').value;
+                const width = parseInt(document.getElementById('image-width').value);
+                const height = parseInt(document.getElementById('image-height').value);
+
+                const response = await apiRequest('/images/generations', 'POST', {
+                    prompt,
+                    model,
+                    width,
+                    height,
+                    n: 1
+                });
+
+                if (response.data && response.data.length > 0) {
+                    const imageUrl = response.data[0].url;
+                    resultDiv.innerHTML = `
+                        <div class="image-grid">
+                            <div class="image-card">
+                                <img src="${imageUrl}" alt="${prompt}">
+                                <div class="info">
+                                    <strong>Prompt:</strong> ${prompt}<br>
+                                    <strong>Model:</strong> ${model}<br>
+                                    <a href="${imageUrl}" target="_blank">Open in new tab</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<div class="error">No image generated</div>';
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">${error.message}</div>`;
+            }
+        }
+
+        async function listModels() {
+            const resultDiv = document.getElementById('models-result');
+            resultDiv.innerHTML = '<div class="loading">Loading models...</div>';
+
+            try {
+                const response = await apiRequest('/models');
+
+                if (response.data && response.data.length > 0) {
+                    let html = '<div style="margin-top: 20px;"><table style="width: 100%; border-collapse: collapse;">';
+                    html += '<tr style="background: #f8f9fa; font-weight: bold;"><td style="padding: 10px; border: 1px solid #ddd;">ID</td><td style="padding: 10px; border: 1px solid #ddd;">Type</td></tr>';
+
+                    response.data.forEach(model => {
+                        html += `<tr><td style="padding: 10px; border: 1px solid #ddd;">${model.id}</td><td style="padding: 10px; border: 1px solid #ddd;">${model.object || 'model'}</td></tr>`;
+                    });
+
+                    html += '</table></div>';
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = '<div class="error">No models found</div>';
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">${error.message}</div>`;
+            }
+        }
+
+        // Load settings on page load
+        loadSettings();
+    </script>
+</body>
+</html>
