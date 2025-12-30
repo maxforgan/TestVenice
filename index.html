@@ -580,20 +580,20 @@
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('chat', event)">Chat</button>
+            <button class="tab" onclick="switchTab('chat', event)">Chat</button>
             <button class="tab" onclick="switchTab('image', event)">Image</button>
             <button class="tab" onclick="switchTab('video', event)">Video</button>
             <button class="tab" onclick="switchTab('models', event)">Models</button>
-            <button class="tab" onclick="switchTab('settings', event)">Settings</button>
+            <button class="tab active" onclick="switchTab('settings', event)">Settings</button>
         </div>
 
         <!-- Setup Banner -->
         <div id="setup-banner" class="setup-banner" style="display: none;">
-            ⚙️ To get started, tap <strong>Settings</strong> below to configure your Venice API key
+            ⚙️ Enter your Venice API key below to get started
         </div>
 
         <!-- Chat Panel -->
-        <div id="chat-panel" class="panel active">
+        <div id="chat-panel" class="panel">
             <div class="chat-container">
                 <div style="padding: 0 0 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222;">
                     <select id="chat-model" style="background: transparent; border: none; color: #999; padding: 8px 0; cursor: pointer; font-size: 14px;">
@@ -756,7 +756,7 @@
         </div>
 
         <!-- Settings Panel -->
-        <div id="settings-panel" class="panel">
+        <div id="settings-panel" class="panel active">
             <div style="padding: 20px;">
                 <h2>Settings</h2>
                 <div class="settings-section">
@@ -790,6 +790,11 @@
                 settings = JSON.parse(saved);
                 document.getElementById('api-key').value = settings.apiKey;
                 document.getElementById('api-base-url').value = settings.baseUrl;
+
+                // If API key exists, switch to Chat tab
+                if (settings.apiKey) {
+                    switchTab('chat');
+                }
             }
             updateSetupBanner();
         }
@@ -819,7 +824,9 @@
 
             setTimeout(() => {
                 document.getElementById('settings-message').innerHTML = '';
-            }, 3000);
+                // Switch to Chat tab after saving
+                switchTab('chat');
+            }, 2000);
         }
 
         function switchTab(tabName, evt) {
