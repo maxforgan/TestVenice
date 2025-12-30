@@ -757,19 +757,20 @@
 
         <!-- Settings Panel -->
         <div id="settings-panel" class="panel active">
-            <div style="padding: 20px;">
-                <h2>Settings</h2>
+            <div style="padding: 20px; min-height: 300px;">
+                <h2 style="color: #fff; margin-bottom: 30px;">Settings</h2>
                 <div class="settings-section">
                     <div class="form-group">
-                        <label for="api-key">Venice API Key</label>
-                        <input type="password" id="api-key" placeholder="Enter your Venice API key">
-                        <small>Get your API key from <a href="https://venice.ai" target="_blank">venice.ai</a></small>
+                        <label for="api-key" style="color: #fff; font-size: 16px;">Venice API Key</label>
+                        <input type="text" id="api-key" placeholder="Enter your Venice API key" style="font-size: 16px; padding: 14px;">
+                        <small style="color: #999; display: block; margin-top: 8px;">Get your API key from <a href="https://venice.ai" target="_blank" style="color: #fff;">venice.ai</a></small>
                     </div>
                     <div class="form-group">
-                        <label for="api-base-url">API Base URL</label>
-                        <input type="text" id="api-base-url" value="https://api.venice.ai/api/v1" placeholder="API base URL">
+                        <label for="api-base-url" style="color: #fff; font-size: 16px;">API Base URL</label>
+                        <input type="text" id="api-base-url" value="https://api.venice.ai/api/v1" placeholder="API base URL" style="font-size: 16px; padding: 14px;">
                     </div>
-                    <button onclick="saveSettings()">Save Settings</button>
+                    <button onclick="saveSettings()" style="width: 100%; padding: 16px; font-size: 16px; margin-top: 10px;">Save Settings</button>
+                    <button onclick="clearLocalStorage()" style="width: 100%; padding: 12px; font-size: 14px; margin-top: 10px; background: #333; color: #fff;">Clear All Data</button>
                     <div id="settings-message"></div>
                 </div>
             </div>
@@ -790,13 +791,15 @@
                 settings = JSON.parse(saved);
                 document.getElementById('api-key').value = settings.apiKey;
                 document.getElementById('api-base-url').value = settings.baseUrl;
-
-                // If API key exists, switch to Chat tab
-                if (settings.apiKey) {
-                    switchTab('chat');
-                }
             }
             updateSetupBanner();
+        }
+
+        function clearLocalStorage() {
+            if (confirm('Clear all saved data including API key?')) {
+                localStorage.clear();
+                location.reload();
+            }
         }
 
         function updateSetupBanner() {
