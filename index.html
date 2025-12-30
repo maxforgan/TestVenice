@@ -13,165 +13,184 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000;
+            color: #fff;
             min-height: 100vh;
-            padding: 20px;
+            display: flex;
+            flex-direction: column;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 0;
         }
 
         .header {
             text-align: center;
-            color: white;
-            margin-bottom: 30px;
+            padding: 40px 20px 20px;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 3em;
+            font-weight: 300;
+            font-style: italic;
+            margin-bottom: 0;
+            letter-spacing: 2px;
         }
 
         .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
+            font-size: 0.9em;
+            opacity: 0.5;
+            margin-top: 8px;
         }
 
         .tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 0;
+            padding: 0 20px;
+            margin-bottom: 0;
+            border-bottom: 1px solid #222;
         }
 
         .tab {
-            flex: 1;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            background: transparent;
             border: none;
-            color: white;
-            font-size: 16px;
+            color: #666;
+            font-size: 14px;
             cursor: pointer;
-            border-radius: 10px;
-            transition: all 0.3s;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
         }
 
         .tab:hover {
-            background: rgba(255, 255, 255, 0.3);
+            color: #999;
         }
 
         .tab.active {
-            background: white;
-            color: #667eea;
-            font-weight: bold;
+            color: #fff;
+            border-bottom-color: #fff;
         }
 
         .panel {
             display: none;
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            padding: 0;
         }
 
         .panel.active {
-            display: block;
+            display: flex;
+            flex-direction: column;
         }
 
         .settings-section {
-            background: #f8f9fa;
+            background: #111;
             padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            border-radius: 8px;
+            margin: 20px;
+            border: 1px solid #222;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #333;
+            margin-bottom: 8px;
+            font-weight: 400;
+            color: #999;
+            font-size: 14px;
         }
 
         input[type="text"],
         input[type="password"],
+        input[type="number"],
         select,
         textarea {
             width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            padding: 12px 16px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-size: 15px;
+            background: #000;
+            color: #fff;
+            transition: border-color 0.2s;
         }
 
         input:focus,
         select:focus,
         textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #666;
         }
 
         textarea {
-            min-height: 100px;
+            min-height: 120px;
             resize: vertical;
+            font-family: inherit;
         }
 
         button {
-            background: #667eea;
-            color: white;
-            padding: 12px 30px;
+            background: #fff;
+            color: #000;
+            padding: 12px 24px;
             border: none;
-            border-radius: 5px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 15px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.2s;
+            font-weight: 500;
         }
 
         button:hover {
-            background: #5568d3;
+            background: #e0e0e0;
         }
 
         button:disabled {
-            background: #ccc;
+            background: #333;
+            color: #666;
             cursor: not-allowed;
         }
 
+        small {
+            color: #666;
+            font-size: 13px;
+        }
+
         .chat-container {
-            height: 500px;
+            flex: 1;
             display: flex;
             flex-direction: column;
+            padding: 20px;
         }
 
         .messages {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 15px;
+            padding: 20px 0;
             position: relative;
         }
 
         .messages.empty::before {
-            content: "No messages yet. Start a conversation!";
+            content: "";
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #999;
-            font-size: 16px;
+            color: #444;
+            font-size: 14px;
         }
 
         .message {
-            margin-bottom: 15px;
-            padding: 12px 15px;
-            border-radius: 12px;
-            max-width: 80%;
+            margin-bottom: 24px;
+            padding: 0;
+            max-width: 100%;
             position: relative;
             animation: slideIn 0.3s ease;
         }
@@ -188,30 +207,27 @@
         }
 
         .message.user {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: transparent;
             color: white;
-            margin-left: auto;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
         .message.assistant {
-            background: white;
-            color: #333;
-            border: 2px solid #e0e0e0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            background: transparent;
+            color: #fff;
         }
 
         .message-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-size: 12px;
-            opacity: 0.8;
+            opacity: 0.5;
         }
 
         .message-role {
-            font-weight: bold;
+            font-weight: 400;
+            font-size: 12px;
         }
 
         .message-time {
@@ -219,54 +235,51 @@
         }
 
         .message-content {
-            line-height: 1.5;
+            line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
+            font-size: 15px;
         }
 
         .message-actions {
-            margin-top: 8px;
+            margin-top: 12px;
             display: flex;
             gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .message:hover .message-actions {
+            opacity: 1;
         }
 
         .message-actions button {
-            padding: 4px 8px;
-            font-size: 11px;
-            background: rgba(0, 0, 0, 0.1);
-            border: none;
-            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 12px;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 6px;
             cursor: pointer;
-            color: inherit;
-        }
-
-        .message.user .message-actions button {
-            background: rgba(255, 255, 255, 0.2);
+            color: #999;
         }
 
         .message-actions button:hover {
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .message.user .message-actions button:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: #2a2a2a;
+            color: #fff;
         }
 
         .typing-indicator {
             display: flex;
             gap: 4px;
-            padding: 12px 15px;
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            max-width: 80px;
-            margin-bottom: 15px;
+            padding: 8px 0;
+            background: transparent;
+            margin-bottom: 24px;
         }
 
         .typing-indicator span {
-            width: 8px;
-            height: 8px;
-            background: #667eea;
+            width: 6px;
+            height: 6px;
+            background: #666;
             border-radius: 50%;
             animation: bounce 1.4s infinite;
         }
@@ -282,32 +295,54 @@
         @keyframes bounce {
             0%, 60%, 100% {
                 transform: translateY(0);
+                opacity: 0.3;
             }
             30% {
-                transform: translateY(-10px);
+                transform: translateY(-6px);
+                opacity: 1;
             }
         }
 
         .message-input {
             display: flex;
-            gap: 10px;
+            gap: 12px;
+            align-items: flex-end;
+            padding-top: 16px;
+            border-top: 1px solid #222;
         }
 
         .message-input input {
             flex: 1;
         }
 
+        .message-input button {
+            padding: 12px 20px;
+            min-width: 48px;
+        }
+
+        #send-button {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
         .image-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
+            gap: 16px;
             margin-top: 20px;
         }
 
         .image-card {
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            border: 1px solid #222;
+            border-radius: 8px;
             overflow: hidden;
+            background: #111;
         }
 
         .image-card img {
@@ -317,81 +352,90 @@
         }
 
         .image-card .info {
-            padding: 10px;
-            background: #f8f9fa;
+            padding: 16px;
+            background: #111;
+            color: #999;
+            font-size: 13px;
+            line-height: 1.6;
         }
 
         .loading {
             text-align: center;
-            padding: 20px;
-            color: #667eea;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 14px;
         }
 
         .error {
-            background: #fee;
-            border: 2px solid #fcc;
-            color: #c00;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 15px;
+            background: #1a0000;
+            border: 1px solid #330000;
+            color: #ff6b6b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 14px;
         }
 
         .success {
-            background: #efe;
-            border: 2px solid #cfc;
-            color: #060;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 15px;
+            background: #001a00;
+            border: 1px solid #003300;
+            color: #69db7c;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 14px;
         }
 
         .video-mode-selector {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 24px;
         }
 
         .mode-button {
             flex: 1;
-            padding: 12px;
-            background: #f8f9fa;
-            border: 2px solid #e0e0e0;
+            padding: 14px;
+            background: #111;
+            border: 1px solid #333;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             text-align: center;
-            font-weight: 600;
+            font-weight: 400;
+            color: #999;
+            font-size: 14px;
         }
 
         .mode-button:hover {
-            background: #e9ecef;
-            border-color: #667eea;
+            background: #1a1a1a;
+            border-color: #444;
+            color: #fff;
         }
 
         .mode-button.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
+            background: #fff;
+            color: #000;
+            border-color: #fff;
         }
 
         .video-upload-area {
-            border: 2px dashed #e0e0e0;
-            border-radius: 10px;
-            padding: 30px;
+            border: 1px dashed #333;
+            border-radius: 8px;
+            padding: 40px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
-            background: #f8f9fa;
+            transition: all 0.2s;
+            background: #0a0a0a;
         }
 
         .video-upload-area:hover {
-            border-color: #667eea;
-            background: #f0f2ff;
+            border-color: #666;
+            background: #111;
         }
 
         .video-upload-area.has-file {
-            border-color: #667eea;
-            background: #f0f2ff;
+            border-color: #666;
+            background: #111;
         }
 
         .video-preview {
@@ -401,15 +445,15 @@
         .video-preview video {
             width: 100%;
             max-width: 600px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
         }
 
         .video-card {
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            border: 1px solid #222;
+            border-radius: 8px;
             overflow: hidden;
             margin-top: 20px;
+            background: #111;
         }
 
         .video-card video {
@@ -419,22 +463,25 @@
         }
 
         .video-card .info {
-            padding: 15px;
-            background: #f8f9fa;
+            padding: 16px;
+            background: #111;
+            color: #999;
+            font-size: 13px;
+            line-height: 1.6;
         }
 
         .progress-bar {
             width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 4px;
+            height: 4px;
+            background: #222;
+            border-radius: 2px;
             overflow: hidden;
-            margin-top: 10px;
+            margin-top: 12px;
         }
 
         .progress-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: #fff;
             transition: width 0.3s;
             animation: pulse 1.5s infinite;
         }
@@ -444,7 +491,44 @@
                 opacity: 1;
             }
             50% {
-                opacity: 0.7;
+                opacity: 0.5;
+            }
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        a {
+            color: #999;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: #fff;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab {
+                white-space: nowrap;
+            }
+
+            .chat-container {
+                padding: 16px;
             }
         }
     </style>
@@ -452,58 +536,39 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Venice AI Interface</h1>
-            <p>Private, Decentralized AI at Your Fingertips</p>
+            <h1>Venice</h1>
+            <p>AI Interface</p>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('settings')">Settings</button>
-            <button class="tab" onclick="switchTab('chat')">Chat</button>
-            <button class="tab" onclick="switchTab('image')">Image Generation</button>
-            <button class="tab" onclick="switchTab('video')">Video Generation</button>
+            <button class="tab active" onclick="switchTab('chat')">Chat</button>
+            <button class="tab" onclick="switchTab('image')">Image</button>
+            <button class="tab" onclick="switchTab('video')">Video</button>
             <button class="tab" onclick="switchTab('models')">Models</button>
-        </div>
-
-        <!-- Settings Panel -->
-        <div id="settings-panel" class="panel active">
-            <h2>API Configuration</h2>
-            <div class="settings-section">
-                <div class="form-group">
-                    <label for="api-key">Venice API Key</label>
-                    <input type="password" id="api-key" placeholder="Enter your Venice API key">
-                    <small>Get your API key from <a href="https://venice.ai" target="_blank">venice.ai</a></small>
-                </div>
-                <div class="form-group">
-                    <label for="api-base-url">API Base URL</label>
-                    <input type="text" id="api-base-url" value="https://api.venice.ai/api/v1" placeholder="API base URL">
-                </div>
-                <button onclick="saveSettings()">Save Settings</button>
-                <div id="settings-message"></div>
-            </div>
+            <button class="tab" onclick="switchTab('settings')">Settings</button>
         </div>
 
         <!-- Chat Panel -->
-        <div id="chat-panel" class="panel">
-            <h2>Chat with Venice AI</h2>
-            <div class="form-group">
-                <label for="chat-model">Model <button onclick="loadChatModels()" style="padding: 5px 10px; margin-left: 10px;">↻ Refresh</button></label>
-                <select id="chat-model">
-                    <option value="">Loading models...</option>
-                </select>
-            </div>
+        <div id="chat-panel" class="panel active">
             <div class="chat-container">
+                <div style="padding: 0 0 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222;">
+                    <select id="chat-model" style="background: transparent; border: none; color: #999; padding: 8px 0; cursor: pointer; font-size: 14px;">
+                        <option value="">Select model...</option>
+                    </select>
+                    <button onclick="loadChatModels()" style="background: transparent; border: none; color: #666; padding: 8px; font-size: 18px; cursor: pointer;" title="Refresh models">↻</button>
+                </div>
                 <div class="messages empty" id="chat-messages"></div>
                 <div class="message-input">
-                    <input type="text" id="chat-input" placeholder="Type your message and press Enter..." onkeypress="handleChatKeypress(event)">
-                    <button id="send-button" onclick="sendMessage()">Send</button>
-                    <button onclick="clearChat()">Clear</button>
+                    <input type="text" id="chat-input" placeholder="Ask a question privately..." onkeypress="handleChatKeypress(event)">
+                    <button id="send-button" onclick="sendMessage()">↑</button>
                 </div>
             </div>
         </div>
 
         <!-- Image Generation Panel -->
         <div id="image-panel" class="panel">
-            <h2>Generate Images</h2>
+            <div style="padding: 20px;">
+                <h2>Image Generation</h2>
             <div class="form-group">
                 <label for="image-model">Model <button onclick="loadImageModels()" style="padding: 5px 10px; margin-left: 10px;">↻ Refresh</button></label>
                 <select id="image-model">
@@ -527,13 +592,15 @@
             </div>
             <button onclick="generateImage()">Generate Image</button>
             <div id="image-result"></div>
+            </div>
         </div>
 
         <!-- Video Generation Panel -->
         <div id="video-panel" class="panel">
-            <h2>Generate Videos</h2>
+            <div style="padding: 20px;">
+                <h2>Video Generation</h2>
 
-            <!-- Mode Selector -->
+                <!-- Mode Selector -->
             <div class="video-mode-selector">
                 <div class="mode-button active" onclick="switchVideoMode('text-to-video')" id="mode-text-to-video">
                     📝 Text to Video
@@ -633,9 +700,31 @@
 
         <!-- Models Panel -->
         <div id="models-panel" class="panel">
-            <h2>Available Models</h2>
-            <button onclick="listModels()">Refresh Models List</button>
-            <div id="models-result"></div>
+            <div style="padding: 20px;">
+                <h2>Available Models</h2>
+                <button onclick="listModels()">Refresh Models List</button>
+                <div id="models-result"></div>
+            </div>
+        </div>
+
+        <!-- Settings Panel -->
+        <div id="settings-panel" class="panel">
+            <div style="padding: 20px;">
+                <h2>Settings</h2>
+                <div class="settings-section">
+                    <div class="form-group">
+                        <label for="api-key">Venice API Key</label>
+                        <input type="password" id="api-key" placeholder="Enter your Venice API key">
+                        <small>Get your API key from <a href="https://venice.ai" target="_blank">venice.ai</a></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="api-base-url">API Base URL</label>
+                        <input type="text" id="api-base-url" value="https://api.venice.ai/api/v1" placeholder="API base URL">
+                    </div>
+                    <button onclick="saveSettings()">Save Settings</button>
+                    <div id="settings-message"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -819,9 +908,9 @@
             messageDiv.className = `message ${isError ? 'assistant' : role}`;
 
             if (isError) {
-                messageDiv.style.background = '#fee2e2';
-                messageDiv.style.borderColor = '#fca5a5';
-                messageDiv.style.color = '#991b1b';
+                messageDiv.style.background = '#1a0000';
+                messageDiv.style.borderColor = '#330000';
+                messageDiv.style.color = '#ff6b6b';
             }
 
             // Create message header with role and time
@@ -931,11 +1020,11 @@
                 const response = await apiRequest('/models');
 
                 if (response.data && response.data.length > 0) {
-                    let html = '<div style="margin-top: 20px;"><table style="width: 100%; border-collapse: collapse;">';
-                    html += '<tr style="background: #f8f9fa; font-weight: bold;"><td style="padding: 10px; border: 1px solid #ddd;">ID</td><td style="padding: 10px; border: 1px solid #ddd;">Type</td></tr>';
+                    let html = '<div style="margin-top: 20px;"><table style="width: 100%; border-collapse: collapse; background: #000;">';
+                    html += '<tr style="background: #111; font-weight: 500; border-bottom: 1px solid #333;"><td style="padding: 12px; border: 1px solid #222; color: #999; font-size: 13px;">ID</td><td style="padding: 12px; border: 1px solid #222; color: #999; font-size: 13px;">Type</td></tr>';
 
                     response.data.forEach(model => {
-                        html += `<tr><td style="padding: 10px; border: 1px solid #ddd;">${model.id}</td><td style="padding: 10px; border: 1px solid #ddd;">${model.object || 'model'}</td></tr>`;
+                        html += `<tr style="border-bottom: 1px solid #222;"><td style="padding: 12px; border: 1px solid #222; color: #fff; font-size: 14px;">${model.id}</td><td style="padding: 12px; border: 1px solid #222; color: #999; font-size: 13px;">${model.object || 'model'}</td></tr>`;
                     });
 
                     html += '</table></div>';
@@ -1201,7 +1290,7 @@
                                 <strong>Prompt:</strong> ${prompt}<br>
                                 <strong>Model:</strong> ${model}<br>
                                 <strong>Duration:</strong> ${duration}s | <strong>FPS:</strong> ${fps} | <strong>Resolution:</strong> ${resolution}<br>
-                                <a href="${videoUrl}" download="venice-video.mp4" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Download Video</a>
+                                <a href="${videoUrl}" download="venice-video.mp4" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background: #fff; color: #000; text-decoration: none; border-radius: 8px; font-weight: 500;">Download Video</a>
                             </div>
                         </div>
                     `;
@@ -1258,7 +1347,7 @@
                                 ${motionPrompt ? `<strong>Motion Prompt:</strong> ${motionPrompt}<br>` : ''}
                                 <strong>Model:</strong> ${model}<br>
                                 <strong>Duration:</strong> ${duration}s | <strong>FPS:</strong> ${fps}<br>
-                                <a href="${videoUrl}" download="venice-video.mp4" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Download Video</a>
+                                <a href="${videoUrl}" download="venice-video.mp4" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background: #fff; color: #000; text-decoration: none; border-radius: 8px; font-weight: 500;">Download Video</a>
                             </div>
                         </div>
                     `;
