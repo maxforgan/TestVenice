@@ -3,1512 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Venice AI Interface</title>
+    <title>Venice AI</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #000;
             color: #fff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .container {
+            padding: 20px;
             max-width: 800px;
             margin: 0 auto;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            padding: 0;
         }
-
-        .header {
-            text-align: center;
-            padding: 40px 20px 20px;
-        }
-
-        .header h1 {
-            font-size: 3em;
-            font-weight: 300;
-            font-style: italic;
-            margin-bottom: 0;
-            letter-spacing: 2px;
-        }
-
-        .header p {
-            font-size: 0.9em;
-            opacity: 0.5;
-            margin-top: 8px;
-        }
-
-        .setup-banner {
-            background: #1a1a1a;
-            border: 1px solid #444;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px;
-            text-align: center;
-            color: #bbb;
-            font-size: 15px;
-            line-height: 1.6;
-        }
-
-        .setup-banner strong {
-            color: #fff;
-            font-weight: 600;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 0;
-            padding: 0 20px;
-            margin-bottom: 0;
-            border-bottom: 1px solid #222;
-        }
-
-        .tab {
-            padding: 16px 20px;
-            background: transparent;
-            border: none;
-            color: #666;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-bottom: 2px solid transparent;
-            -webkit-tap-highlight-color: transparent;
-            min-width: 60px;
-        }
-
-        .tab:hover {
-            color: #999;
-        }
-
-        .tab:active {
-            color: #fff;
-        }
-
-        .tab.active {
-            color: #fff;
-            border-bottom-color: #fff;
-        }
-
-        .panel {
-            display: none;
-            flex: 1;
-            padding: 0;
-        }
-
-        .panel.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .settings-section {
+        h1 { margin-bottom: 30px; text-align: center; }
+        .section {
             background: #111;
             padding: 20px;
-            border-radius: 8px;
-            margin: 20px;
-            border: 1px solid #222;
-        }
-
-        .form-group {
             margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #333;
         }
-
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 400;
+            margin: 15px 0 5px;
             color: #999;
             font-size: 14px;
         }
-
-        input[type="text"],
-        input[type="password"],
-        input[type="number"],
-        select,
-        textarea {
+        input, select, textarea {
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #333;
-            border-radius: 8px;
-            font-size: 15px;
+            padding: 12px;
             background: #000;
+            border: 1px solid #333;
             color: #fff;
-            transition: border-color 0.2s;
+            border-radius: 4px;
+            font-size: 16px;
         }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #666;
-        }
-
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-            font-family: inherit;
-        }
-
         button {
+            width: 100%;
+            padding: 15px;
             background: #fff;
             color: #000;
-            padding: 12px 24px;
             border: none;
-            border-radius: 8px;
-            font-size: 15px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
+            margin-top: 10px;
         }
-
-        button:hover {
-            background: #e0e0e0;
-        }
-
-        button:disabled {
-            background: #333;
-            color: #666;
-            cursor: not-allowed;
-        }
-
-        small {
-            color: #666;
-            font-size: 13px;
-        }
-
-        .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-        }
-
-        .messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 0;
-            position: relative;
-        }
-
-        .messages.empty::before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #444;
-            font-size: 14px;
-        }
-
+        button:hover { background: #ddd; }
         .message {
-            margin-bottom: 24px;
-            padding: 0;
-            max-width: 100%;
-            position: relative;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message.user {
-            background: transparent;
-            color: white;
-        }
-
-        .message.assistant {
-            background: transparent;
-            color: #fff;
-        }
-
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-            font-size: 12px;
-            opacity: 0.5;
-        }
-
-        .message-role {
-            font-weight: 400;
-            font-size: 12px;
-        }
-
-        .message-time {
-            font-size: 11px;
-        }
-
-        .message-content {
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-size: 15px;
-        }
-
-        .message-actions {
-            margin-top: 12px;
-            display: flex;
-            gap: 8px;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .message:hover .message-actions {
-            opacity: 1;
-        }
-
-        .message-actions button {
-            padding: 6px 12px;
-            font-size: 12px;
-            background: #222;
-            border: 1px solid #333;
-            border-radius: 6px;
-            cursor: pointer;
-            color: #999;
-        }
-
-        .message-actions button:hover {
-            background: #2a2a2a;
-            color: #fff;
-        }
-
-        .typing-indicator {
-            display: flex;
-            gap: 4px;
-            padding: 8px 0;
-            background: transparent;
-            margin-bottom: 24px;
-        }
-
-        .typing-indicator span {
-            width: 6px;
-            height: 6px;
-            background: #666;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite;
-        }
-
-        .typing-indicator span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-indicator span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes bounce {
-            0%, 60%, 100% {
-                transform: translateY(0);
-                opacity: 0.3;
-            }
-            30% {
-                transform: translateY(-6px);
-                opacity: 1;
-            }
-        }
-
-        .message-input {
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
-            padding-top: 16px;
-            border-top: 1px solid #222;
-        }
-
-        .message-input input {
-            flex: 1;
-        }
-
-        .message-input button {
-            padding: 12px 20px;
-            min-width: 48px;
-        }
-
-        #send-button {
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .image-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 16px;
-            margin-top: 20px;
-        }
-
-        .image-card {
-            border: 1px solid #222;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #111;
-        }
-
-        .image-card img {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-        }
-
-        .image-card .info {
-            padding: 16px;
-            background: #111;
-            color: #999;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px 20px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .error {
-            background: #1a0000;
-            border: 1px solid #330000;
-            color: #ff6b6b;
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 16px;
-            font-size: 14px;
-        }
-
-        .success {
-            background: #001a00;
-            border: 1px solid #003300;
-            color: #69db7c;
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 16px;
-            font-size: 14px;
-        }
-
-        .video-mode-selector {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .mode-button {
-            flex: 1;
-            padding: 14px;
-            background: #111;
-            border: 1px solid #333;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-            font-weight: 400;
-            color: #999;
-            font-size: 14px;
-        }
-
-        .mode-button:hover {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
             background: #1a1a1a;
-            border-color: #444;
-            color: #fff;
         }
-
-        .mode-button.active {
-            background: #fff;
-            color: #000;
-            border-color: #fff;
-        }
-
-        .video-upload-area {
-            border: 1px dashed #333;
-            border-radius: 8px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: #0a0a0a;
-        }
-
-        .video-upload-area:hover {
-            border-color: #666;
-            background: #111;
-        }
-
-        .video-upload-area.has-file {
-            border-color: #666;
-            background: #111;
-        }
-
-        .video-preview {
-            margin-top: 20px;
-        }
-
-        .video-preview video {
-            width: 100%;
-            max-width: 600px;
-            border-radius: 8px;
-        }
-
-        .video-card {
-            border: 1px solid #222;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-top: 20px;
-            background: #111;
-        }
-
-        .video-card video {
-            width: 100%;
-            max-height: 400px;
-            background: #000;
-        }
-
-        .video-card .info {
-            padding: 16px;
-            background: #111;
-            color: #999;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: #222;
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 12px;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: #fff;
-            transition: width 0.3s;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        h2 {
-            font-size: 18px;
-            font-weight: 500;
-            margin-bottom: 20px;
-            color: #fff;
-        }
-
-        a {
-            color: #999;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        a:hover {
-            color: #fff;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2em;
-            }
-
-            .tabs {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none;
-            }
-
-            .tabs::-webkit-scrollbar {
-                display: none;
-            }
-
-            .tab {
-                white-space: nowrap;
-                flex-shrink: 0;
-            }
-
-            .chat-container {
-                padding: 16px;
-            }
-
-            .setup-banner {
-                margin: 16px;
-                padding: 16px;
-                font-size: 14px;
-            }
-
-            .settings-section {
-                margin: 16px;
-            }
-        }
+        .user { background: #1a1a1a; }
+        .assistant { background: #0a2a0a; }
+        .error { background: #2a0a0a; color: #ff6b6b; }
+        .success { background: #0a2a0a; color: #69db7c; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Venice</h1>
-            <p>AI Interface v2.0</p>
-        </div>
+    <h1>Venice AI</h1>
 
-        <div class="tabs">
-            <button class="tab" onclick="switchTab('chat', event)">Chat</button>
-            <button class="tab" onclick="switchTab('image', event)">Image</button>
-            <button class="tab" onclick="switchTab('video', event)">Video</button>
-            <button class="tab" onclick="switchTab('models', event)">Models</button>
-            <button class="tab active" onclick="switchTab('settings', event)">Settings</button>
-        </div>
+    <!-- API Settings -->
+    <div class="section">
+        <h2>Settings</h2>
+        <label>Venice API Key</label>
+        <input type="text" id="apiKey" placeholder="Enter your API key">
 
-        <!-- Setup Banner -->
-        <div id="setup-banner" class="setup-banner" style="display: none;">
-            ⚙️ Enter your Venice API key below to get started
-        </div>
+        <label>API URL</label>
+        <input type="text" id="apiUrl" value="https://api.venice.ai/api/v1">
 
-        <!-- Chat Panel -->
-        <div id="chat-panel" class="panel">
-            <div class="chat-container">
-                <div style="padding: 0 0 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222;">
-                    <select id="chat-model" style="background: transparent; border: none; color: #999; padding: 8px 0; cursor: pointer; font-size: 14px;">
-                        <option value="">Select model...</option>
-                    </select>
-                    <button onclick="loadChatModels()" style="background: transparent; border: none; color: #666; padding: 8px; font-size: 18px; cursor: pointer;" title="Refresh models">↻</button>
-                </div>
-                <div class="messages empty" id="chat-messages"></div>
-                <div class="message-input">
-                    <input type="text" id="chat-input" placeholder="Ask a question privately..." onkeypress="handleChatKeypress(event)">
-                    <button id="send-button" onclick="sendMessage()">↑</button>
-                </div>
-            </div>
-        </div>
+        <button onclick="saveSettings()">Save Settings</button>
+        <div id="settingsMsg"></div>
+    </div>
 
-        <!-- Image Generation Panel -->
-        <div id="image-panel" class="panel">
-            <div style="padding: 20px;">
-                <h2>Image Generation</h2>
-            <div class="form-group">
-                <label for="image-model">Model <button onclick="loadImageModels()" style="padding: 5px 10px; margin-left: 10px;">↻ Refresh</button></label>
-                <select id="image-model">
-                    <option value="">Loading models...</option>
-                </select>
-                <small style="color: #666; display: block; margin-top: 5px;">If no models appear, make sure you've saved your API key in Settings and click ↻ Refresh</small>
-            </div>
-            <div class="form-group">
-                <label for="image-prompt">Prompt</label>
-                <textarea id="image-prompt" placeholder="Describe the image you want to generate..."></textarea>
-            </div>
-            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label for="image-width">Width</label>
-                    <input type="number" id="image-width" value="1024" min="256" max="2048" step="64">
-                </div>
-                <div>
-                    <label for="image-height">Height</label>
-                    <input type="number" id="image-height" value="1024" min="256" max="2048" step="64">
-                </div>
-            </div>
-            <button onclick="generateImage()">Generate Image</button>
-            <div id="image-result"></div>
-            </div>
-        </div>
+    <!-- Chat -->
+    <div class="section">
+        <h2>Chat</h2>
+        <label>Model</label>
+        <select id="model">
+            <option value="">Click "Load Models" first</option>
+        </select>
+        <button onclick="loadModels()">Load Models</button>
 
-        <!-- Video Generation Panel -->
-        <div id="video-panel" class="panel">
-            <div style="padding: 20px;">
-                <h2>Video Generation</h2>
+        <label>Message</label>
+        <textarea id="message" rows="4" placeholder="Type your message..."></textarea>
+        <button onclick="sendChat()">Send</button>
 
-                <div style="background: #1a1a00; border: 1px solid #333300; color: #ffd700; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">
-                    ⚠️ Note: Video generation requires Venice API support for the <code style="background: #000; padding: 2px 6px; border-radius: 4px;">/videos/generations</code> endpoint. This feature may not be available yet.
-                </div>
-
-                <!-- Mode Selector -->
-            <div class="video-mode-selector">
-                <div class="mode-button active" onclick="switchVideoMode('text-to-video')" id="mode-text-to-video">
-                    📝 Text to Video
-                </div>
-                <div class="mode-button" onclick="switchVideoMode('image-to-video')" id="mode-image-to-video">
-                    🖼️ Image to Video
-                </div>
-            </div>
-
-            <!-- Model Selection -->
-            <div class="form-group">
-                <label for="video-model">Model <button onclick="loadVideoModels()" style="padding: 5px 10px; margin-left: 10px;">↻ Refresh</button></label>
-                <select id="video-model">
-                    <option value="">Loading models...</option>
-                </select>
-                <small style="color: #666; display: block; margin-top: 5px;">If no models appear, make sure you've saved your API key in Settings and click ↻ Refresh</small>
-            </div>
-
-            <!-- Text to Video Mode -->
-            <div id="text-to-video-mode">
-                <div class="form-group">
-                    <label for="video-prompt">Video Prompt</label>
-                    <textarea id="video-prompt" placeholder="Describe the video you want to generate... (e.g., 'A serene sunset over the ocean with waves gently crashing')"></textarea>
-                </div>
-
-                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                    <div>
-                        <label for="video-duration">Duration (seconds)</label>
-                        <input type="number" id="video-duration" value="5" min="1" max="30" step="1">
-                    </div>
-                    <div>
-                        <label for="video-fps">FPS</label>
-                        <select id="video-fps">
-                            <option value="24">24</option>
-                            <option value="30" selected>30</option>
-                            <option value="60">60</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="video-resolution">Resolution</label>
-                        <select id="video-resolution">
-                            <option value="512x512">512x512</option>
-                            <option value="768x768">768x768</option>
-                            <option value="1024x576" selected>1024x576 (16:9)</option>
-                            <option value="1280x720">1280x720 (HD)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <button onclick="generateVideoFromText()">Generate Video from Text</button>
-            </div>
-
-            <!-- Image to Video Mode -->
-            <div id="image-to-video-mode" style="display: none;">
-                <div class="form-group">
-                    <label>Upload Image</label>
-                    <div class="video-upload-area" onclick="document.getElementById('image-upload').click()">
-                        <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
-                        <div id="upload-placeholder">
-                            <p style="font-size: 48px; margin: 0;">📁</p>
-                            <p>Click to upload an image</p>
-                            <small>Supported formats: JPG, PNG, WebP</small>
-                        </div>
-                        <div id="image-preview" style="display: none;">
-                            <img id="preview-img" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
-                            <p id="image-filename" style="margin-top: 10px; font-weight: 600;"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="image-to-video-prompt">Motion Prompt (Optional)</label>
-                    <textarea id="image-to-video-prompt" placeholder="Describe the motion/animation you want... (e.g., 'Camera slowly zooms out', 'Clouds moving across the sky')"></textarea>
-                </div>
-
-                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>
-                        <label for="i2v-duration">Duration (seconds)</label>
-                        <input type="number" id="i2v-duration" value="5" min="1" max="30" step="1">
-                    </div>
-                    <div>
-                        <label for="i2v-fps">FPS</label>
-                        <select id="i2v-fps">
-                            <option value="24">24</option>
-                            <option value="30" selected>30</option>
-                            <option value="60">60</option>
-                        </select>
-                    </div>
-                </div>
-
-                <button onclick="generateVideoFromImage()">Generate Video from Image</button>
-            </div>
-
-            <!-- Video Result -->
-            <div id="video-result"></div>
-        </div>
-
-        <!-- Models Panel -->
-        <div id="models-panel" class="panel">
-            <div style="padding: 20px;">
-                <h2>Available Models</h2>
-                <button onclick="listModels()">Refresh Models List</button>
-                <div id="models-result"></div>
-            </div>
-        </div>
-
-        <!-- Settings Panel -->
-        <div id="settings-panel" class="panel active">
-            <div style="padding: 20px; min-height: 300px;">
-                <h2 style="color: #fff; margin-bottom: 30px;">Settings</h2>
-                <div class="settings-section">
-                    <div class="form-group">
-                        <label for="api-key" style="color: #fff; font-size: 16px;">Venice API Key</label>
-                        <input type="text" id="api-key" placeholder="Enter your Venice API key" style="font-size: 16px; padding: 14px;">
-                        <small style="color: #999; display: block; margin-top: 8px;">Get your API key from <a href="https://venice.ai" target="_blank" style="color: #fff;">venice.ai</a></small>
-                    </div>
-                    <div class="form-group">
-                        <label for="api-base-url" style="color: #fff; font-size: 16px;">API Base URL</label>
-                        <input type="text" id="api-base-url" value="https://api.venice.ai/api/v1" placeholder="API base URL" style="font-size: 16px; padding: 14px;">
-                    </div>
-                    <button onclick="saveSettings()" style="width: 100%; padding: 16px; font-size: 16px; margin-top: 10px;">Save Settings</button>
-                    <button onclick="testConnection()" style="width: 100%; padding: 12px; font-size: 14px; margin-top: 10px; background: #1a1a1a; color: #fff; border: 1px solid #444;">Test API Connection</button>
-                    <button onclick="clearLocalStorage()" style="width: 100%; padding: 12px; font-size: 14px; margin-top: 10px; background: #333; color: #fff;">Clear All Data</button>
-                    <div id="settings-message"></div>
-                </div>
-            </div>
-        </div>
+        <div id="chatOutput"></div>
     </div>
 
     <script>
-        let chatMessages = [];
-        let settings = {
-            apiKey: '',
-            baseUrl: 'https://api.venice.ai/api/v1'
-        };
+        let settings = { apiKey: '', apiUrl: 'https://api.venice.ai/api/v1' };
 
-        // Load settings from localStorage
-        function loadSettings() {
-            const saved = localStorage.getItem('veniceSettings');
-            if (saved) {
-                settings = JSON.parse(saved);
-                document.getElementById('api-key').value = settings.apiKey;
-                document.getElementById('api-base-url').value = settings.baseUrl;
-            }
-            updateSetupBanner();
+        // Load saved settings
+        const saved = localStorage.getItem('venice');
+        if (saved) {
+            settings = JSON.parse(saved);
+            document.getElementById('apiKey').value = settings.apiKey;
+            document.getElementById('apiUrl').value = settings.apiUrl;
         }
 
-        function clearLocalStorage() {
-            if (confirm('Clear all saved data including API key?')) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
+        function saveSettings() {
+            settings.apiKey = document.getElementById('apiKey').value.trim();
+            settings.apiUrl = document.getElementById('apiUrl').value.trim();
 
-        async function testConnection() {
-            const messageDiv = document.getElementById('settings-message');
-            const apiKey = document.getElementById('api-key').value;
-            const baseUrl = document.getElementById('api-base-url').value;
-
-            if (!apiKey) {
-                messageDiv.innerHTML = '<div class="error">Please enter an API key first</div>';
-                return;
-            }
-
-            messageDiv.innerHTML = '<div class="loading">Testing connection to Venice API...</div>';
-
-            try {
-                // Temporarily set settings for test
-                const tempSettings = { apiKey, baseUrl };
-                const oldSettings = { ...settings };
-                settings = tempSettings;
-
-                const response = await apiRequest('/models');
-
-                // Restore old settings
-                settings = oldSettings;
-
-                if (response.data && response.data.length > 0) {
-                    messageDiv.innerHTML = `<div class="success">✓ Connection successful!<br>Found ${response.data.length} models available.<br>First few models: ${response.data.slice(0, 3).map(m => m.id).join(', ')}</div>`;
-                } else {
-                    messageDiv.innerHTML = '<div class="error">Connection successful but no models found</div>';
-                }
-            } catch (error) {
-                messageDiv.innerHTML = `<div class="error">Connection failed: ${error.message}<br><br>Please check:<br>1. API key is correct<br>2. You have an active Venice AI account<br>3. API base URL is correct</div>`;
-            }
-        }
-
-        function updateSetupBanner() {
-            const banner = document.getElementById('setup-banner');
             if (!settings.apiKey) {
-                banner.style.display = 'block';
-            } else {
-                banner.style.display = 'none';
-            }
-        }
-
-        async function saveSettings() {
-            settings.apiKey = document.getElementById('api-key').value;
-            settings.baseUrl = document.getElementById('api-base-url').value;
-
-            if (!settings.apiKey || !settings.baseUrl) {
-                document.getElementById('settings-message').innerHTML = '<div class="error">Please enter both API key and base URL</div>';
+                document.getElementById('settingsMsg').innerHTML = '<div class="error">Enter API key</div>';
                 return;
             }
 
-            localStorage.setItem('veniceSettings', JSON.stringify(settings));
-            document.getElementById('settings-message').innerHTML = '<div class="success">✓ Settings saved! Loading models...</div>';
-
-            // Update banner visibility
-            updateSetupBanner();
-
-            // Load models with the new API key
-            try {
-                await Promise.all([
-                    loadChatModels(),
-                    loadImageModels(),
-                    loadVideoModels()
-                ]);
-
-                document.getElementById('settings-message').innerHTML = '<div class="success">✓ Settings saved! Models loaded successfully. Switching to Chat...</div>';
-
-                setTimeout(() => {
-                    document.getElementById('settings-message').innerHTML = '';
-                    // Switch to Chat tab after saving
-                    switchTab('chat');
-                }, 2000);
-            } catch (error) {
-                document.getElementById('settings-message').innerHTML = `<div class="error">Settings saved, but failed to load models: ${error.message}</div>`;
-            }
+            localStorage.setItem('venice', JSON.stringify(settings));
+            document.getElementById('settingsMsg').innerHTML = '<div class="success">Saved!</div>';
+            loadModels();
         }
 
-        function switchTab(tabName, evt) {
-            // Remove active from all tabs and panels
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
-
-            // Activate the selected panel
-            document.getElementById(`${tabName}-panel`).classList.add('active');
-
-            // Activate the corresponding tab button
-            if (evt && evt.target) {
-                evt.target.classList.add('active');
-            } else {
-                // Fallback: find and activate the tab by matching onclick attribute
-                document.querySelectorAll('.tab').forEach(tab => {
-                    if (tab.getAttribute('onclick').includes(`'${tabName}'`)) {
-                        tab.classList.add('active');
-                    }
-                });
-            }
-
-            // Auto-focus chat input when switching to chat tab
-            if (tabName === 'chat') {
-                setTimeout(() => {
-                    document.getElementById('chat-input').focus();
-                }, 100);
-            }
-        }
-
-        async function apiRequest(endpoint, method = 'GET', body = null) {
+        async function loadModels() {
             if (!settings.apiKey) {
-                throw new Error('API key not set. Please configure it in Settings.');
-            }
-
-            const options = {
-                method,
-                headers: {
-                    'Authorization': `Bearer ${settings.apiKey}`,
-                    'Content-Type': 'application/json'
-                }
-            };
-
-            if (body) {
-                options.body = JSON.stringify(body);
-            }
-
-            const response = await fetch(`${settings.baseUrl}${endpoint}`, options);
-
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`API Error: ${response.status} - ${error}`);
-            }
-
-            return response.json();
-        }
-
-        function handleChatKeypress(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        }
-
-        function formatTime() {
-            const now = new Date();
-            return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        }
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                // Visual feedback
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-            });
-        }
-
-        function showTypingIndicator() {
-            const messagesDiv = document.getElementById('chat-messages');
-            const indicator = document.createElement('div');
-            indicator.className = 'typing-indicator';
-            indicator.id = 'typing-indicator';
-            indicator.innerHTML = '<span></span><span></span><span></span>';
-            messagesDiv.appendChild(indicator);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        function hideTypingIndicator() {
-            const indicator = document.getElementById('typing-indicator');
-            if (indicator) {
-                indicator.remove();
-            }
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const sendButton = document.getElementById('send-button');
-            const message = input.value.trim();
-
-            if (!message) return;
-
-            // Disable input while processing
-            input.disabled = true;
-            sendButton.disabled = true;
-
-            // Remove empty state
-            const messagesDiv = document.getElementById('chat-messages');
-            messagesDiv.classList.remove('empty');
-
-            // Display user message
-            chatMessages.push({ role: 'user', content: message });
-            displayMessage('user', message);
-            input.value = '';
-
-            // Show typing indicator
-            showTypingIndicator();
-
-            try {
-                const model = document.getElementById('chat-model').value;
-
-                if (!model) {
-                    throw new Error('Please select a model first');
-                }
-
-                const response = await apiRequest('/chat/completions', 'POST', {
-                    model,
-                    messages: chatMessages,
-                    temperature: 0.7
-                });
-
-                hideTypingIndicator();
-
-                const assistantMessage = response.choices[0].message.content;
-                chatMessages.push({ role: 'assistant', content: assistantMessage });
-                displayMessage('assistant', assistantMessage);
-
-            } catch (error) {
-                hideTypingIndicator();
-                displayMessage('error', error.message, true);
-                // Remove the failed message from history
-                chatMessages.pop();
-            } finally {
-                // Re-enable input
-                input.disabled = false;
-                sendButton.disabled = false;
-                input.focus();
-            }
-        }
-
-        function displayMessage(role, content, isError = false) {
-            const messagesDiv = document.getElementById('chat-messages');
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isError ? 'assistant' : role}`;
-
-            if (isError) {
-                messageDiv.style.background = '#1a0000';
-                messageDiv.style.borderColor = '#330000';
-                messageDiv.style.color = '#ff6b6b';
-            }
-
-            // Create message header with role and time
-            const header = document.createElement('div');
-            header.className = 'message-header';
-
-            const roleSpan = document.createElement('span');
-            roleSpan.className = 'message-role';
-            roleSpan.textContent = isError ? 'Error' : (role === 'user' ? 'You' : 'Assistant');
-
-            const timeSpan = document.createElement('span');
-            timeSpan.className = 'message-time';
-            timeSpan.textContent = formatTime();
-
-            header.appendChild(roleSpan);
-            header.appendChild(timeSpan);
-
-            // Create message content
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            contentDiv.textContent = content;
-
-            // Create message actions
-            const actionsDiv = document.createElement('div');
-            actionsDiv.className = 'message-actions';
-
-            const copyBtn = document.createElement('button');
-            copyBtn.textContent = 'Copy';
-            copyBtn.onclick = () => copyToClipboard(content);
-
-            actionsDiv.appendChild(copyBtn);
-
-            // Assemble message
-            messageDiv.appendChild(header);
-            messageDiv.appendChild(contentDiv);
-            messageDiv.appendChild(actionsDiv);
-
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        function clearChat() {
-            chatMessages = [];
-            const messagesDiv = document.getElementById('chat-messages');
-            messagesDiv.innerHTML = '';
-            messagesDiv.classList.add('empty');
-            document.getElementById('chat-input').focus();
-        }
-
-        async function generateImage() {
-            const prompt = document.getElementById('image-prompt').value.trim();
-            if (!prompt) {
-                alert('Please enter a prompt');
+                alert('Save your API key first');
                 return;
             }
 
-            const resultDiv = document.getElementById('image-result');
-            resultDiv.innerHTML = '<div class="loading">Generating image...</div>';
+            const select = document.getElementById('model');
+            select.innerHTML = '<option>Loading...</option>';
 
             try {
-                const model = document.getElementById('image-model').value;
-
-                // Validate model is selected
-                if (!model) {
-                    throw new Error('Please select an image model first. Click the ↻ Refresh button to load available models.');
-                }
-
-                const width = parseInt(document.getElementById('image-width').value);
-                const height = parseInt(document.getElementById('image-height').value);
-
-                const response = await apiRequest('/images/generations', 'POST', {
-                    prompt,
-                    model,
-                    width,
-                    height,
-                    n: 1
+                const res = await fetch(settings.apiUrl + '/models', {
+                    headers: { 'Authorization': 'Bearer ' + settings.apiKey }
                 });
 
-                if (response.data && response.data.length > 0) {
-                    const imageUrl = response.data[0].url;
-                    resultDiv.innerHTML = `
-                        <div class="image-grid">
-                            <div class="image-card">
-                                <img src="${imageUrl}" alt="${prompt}">
-                                <div class="info">
-                                    <strong>Prompt:</strong> ${prompt}<br>
-                                    <strong>Model:</strong> ${model}<br>
-                                    <a href="${imageUrl}" target="_blank">Open in new tab</a>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    resultDiv.innerHTML = '<div class="error">No image generated</div>';
-                }
+                if (!res.ok) throw new Error('API error: ' + res.status);
 
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="error">${error.message}</div>`;
-            }
-        }
+                const data = await res.json();
+                const models = data.data || [];
 
-        async function listModels() {
-            const resultDiv = document.getElementById('models-result');
-            resultDiv.innerHTML = '<div class="loading">Loading models...</div>';
-
-            try {
-                const response = await apiRequest('/models');
-
-                if (response.data && response.data.length > 0) {
-                    let html = '<div style="margin-top: 20px;"><table style="width: 100%; border-collapse: collapse; background: #000;">';
-                    html += '<tr style="background: #111; font-weight: 500; border-bottom: 1px solid #333;"><td style="padding: 12px; border: 1px solid #222; color: #999; font-size: 13px;">ID</td><td style="padding: 12px; border: 1px solid #222; color: #999; font-size: 13px;">Type</td></tr>';
-
-                    response.data.forEach(model => {
-                        html += `<tr style="border-bottom: 1px solid #222;"><td style="padding: 12px; border: 1px solid #222; color: #fff; font-size: 14px;">${model.id}</td><td style="padding: 12px; border: 1px solid #222; color: #999; font-size: 13px;">${model.object || 'model'}</td></tr>`;
-                    });
-
-                    html += '</table></div>';
-                    resultDiv.innerHTML = html;
-                } else {
-                    resultDiv.innerHTML = '<div class="error">No models found</div>';
-                }
-
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="error">${error.message}</div>`;
-            }
-        }
-
-        async function loadChatModels() {
-            const select = document.getElementById('chat-model');
-            const currentValue = select.value;
-
-            try {
-                select.innerHTML = '<option value="">Loading models...</option>';
-                const response = await apiRequest('/models');
-
-                if (response.data && response.data.length > 0) {
-                    // Filter for chat/text models (not image or audio)
-                    const chatModels = response.data.filter(model => {
-                        const id = model.id.toLowerCase();
-                        return !id.includes('flux') && !id.includes('stable') &&
-                               !id.includes('dall-e') && !id.includes('whisper') &&
-                               !id.includes('tts') && !id.includes('kokoro') &&
-                               !id.includes('fluently');
-                    });
-
-                    select.innerHTML = '';
-
-                    if (chatModels.length === 0) {
-                        // Fallback to all models if filtering resulted in none
-                        response.data.forEach(model => {
-                            const option = document.createElement('option');
-                            option.value = model.id;
-                            option.textContent = model.id;
-                            select.appendChild(option);
-                        });
-                    } else {
-                        chatModels.forEach(model => {
-                            const option = document.createElement('option');
-                            option.value = model.id;
-                            option.textContent = model.id;
-                            select.appendChild(option);
-                        });
-                    }
-
-                    // Restore previous selection if it exists
-                    if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
-                        select.value = currentValue;
-                    } else if (select.options.length > 0) {
-                        // Select first model by default
-                        select.selectedIndex = 0;
-                    }
-
-                    console.log(`Loaded ${select.options.length} chat models`);
-                } else {
-                    select.innerHTML = '<option value="">No models available</option>';
-                }
-
-            } catch (error) {
-                select.innerHTML = `<option value="">Error: ${error.message}</option>`;
-                console.error('Error loading chat models:', error);
-            }
-        }
-
-        async function loadImageModels() {
-            const select = document.getElementById('image-model');
-            const currentValue = select.value;
-
-            try {
-                const response = await apiRequest('/models');
-
-                if (response.data && response.data.length > 0) {
-                    // Filter for image generation models
-                    let imageModels = response.data.filter(model => {
-                        const id = model.id.toLowerCase();
-                        return id.includes('flux') || id.includes('stable') ||
-                               id.includes('dall-e') || id.includes('fluently') ||
-                               id.includes('image') || id.includes('sdxl') ||
-                               id.includes('sd-') || id.includes('midjourney');
-                    });
-
-                    select.innerHTML = '';
-
-                    // If no image-specific models found, check for any available models
-                    if (imageModels.length === 0) {
-                        console.warn('No image models found with standard filters, showing all models');
-                        imageModels = response.data;
-                    }
-
-                    if (imageModels.length > 0) {
-                        imageModels.forEach(model => {
-                            const option = document.createElement('option');
-                            option.value = model.id;
-                            option.textContent = model.id;
-                            select.appendChild(option);
-                        });
-                    } else {
-                        const option = document.createElement('option');
-                        option.value = '';
-                        option.textContent = 'No models available - check API key';
-                        select.appendChild(option);
-                    }
-
-                    // Restore previous selection if it exists
-                    if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
-                        select.value = currentValue;
-                    }
-                } else {
-                    const option = document.createElement('option');
-                    option.value = '';
-                    option.textContent = 'No models available - check API key';
-                    select.appendChild(option);
-                }
-
-            } catch (error) {
                 select.innerHTML = '';
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'Error loading models - check API key';
-                select.appendChild(option);
-                console.error('Error loading image models:', error);
+                models.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = m.id;
+                    select.appendChild(opt);
+                });
+
+                if (models.length === 0) select.innerHTML = '<option>No models found</option>';
+
+            } catch (e) {
+                select.innerHTML = '<option>Error loading models</option>';
+                alert('Error: ' + e.message);
             }
         }
 
-        // Video generation functions
-        let uploadedImageData = null;
+        async function sendChat() {
+            const model = document.getElementById('model').value;
+            const msg = document.getElementById('message').value.trim();
+            const output = document.getElementById('chatOutput');
 
-        function switchVideoMode(mode) {
-            // Update button states
-            document.querySelectorAll('.mode-button').forEach(btn => btn.classList.remove('active'));
-
-            if (mode === 'text-to-video') {
-                document.getElementById('mode-text-to-video').classList.add('active');
-                document.getElementById('text-to-video-mode').style.display = 'block';
-                document.getElementById('image-to-video-mode').style.display = 'none';
-            } else {
-                document.getElementById('mode-image-to-video').classList.add('active');
-                document.getElementById('text-to-video-mode').style.display = 'none';
-                document.getElementById('image-to-video-mode').style.display = 'block';
-            }
-        }
-
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                uploadedImageData = e.target.result;
-
-                // Show preview
-                document.getElementById('upload-placeholder').style.display = 'none';
-                document.getElementById('image-preview').style.display = 'block';
-                document.getElementById('preview-img').src = e.target.result;
-                document.getElementById('image-filename').textContent = file.name;
-
-                // Update upload area style
-                document.querySelector('.video-upload-area').classList.add('has-file');
-            };
-            reader.readAsDataURL(file);
-        }
-
-        async function loadVideoModels() {
-            const select = document.getElementById('video-model');
-            const currentValue = select.value;
-
-            try {
-                const response = await apiRequest('/models');
-
-                if (response.data && response.data.length > 0) {
-                    // Filter for video generation models
-                    let videoModels = response.data.filter(model => {
-                        const id = model.id.toLowerCase();
-                        return id.includes('video') || id.includes('animate') ||
-                               id.includes('runway') || id.includes('pika') ||
-                               id.includes('gen-2') || id.includes('gen-3') ||
-                               id.includes('kling') || id.includes('sora');
-                    });
-
-                    select.innerHTML = '';
-
-                    // If no video-specific models found, show all models as fallback
-                    if (videoModels.length === 0) {
-                        console.warn('No video models found with standard filters, showing all models');
-                        videoModels = response.data;
-                    }
-
-                    if (videoModels.length > 0) {
-                        videoModels.forEach(model => {
-                            const option = document.createElement('option');
-                            option.value = model.id;
-                            option.textContent = model.id;
-                            select.appendChild(option);
-                        });
-                    } else {
-                        const option = document.createElement('option');
-                        option.value = '';
-                        option.textContent = 'No models available - check API key';
-                        select.appendChild(option);
-                    }
-
-                    // Restore previous selection if it exists
-                    if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
-                        select.value = currentValue;
-                    }
-                } else {
-                    const option = document.createElement('option');
-                    option.value = '';
-                    option.textContent = 'No models available - check API key';
-                    select.appendChild(option);
-                }
-
-            } catch (error) {
-                select.innerHTML = '';
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'Error loading models - check API key';
-                select.appendChild(option);
-                console.error('Error loading video models:', error);
-            }
-        }
-
-        async function generateVideoFromText() {
-            const prompt = document.getElementById('video-prompt').value.trim();
-            if (!prompt) {
-                alert('Please enter a video prompt');
+            if (!settings.apiKey) {
+                alert('Save your API key first');
                 return;
             }
 
-            const resultDiv = document.getElementById('video-result');
-            resultDiv.innerHTML = '<div class="loading">Generating video... This may take a few minutes.<div class="progress-bar"><div class="progress-bar-fill" style="width: 50%"></div></div></div>';
-
-            try {
-                const model = document.getElementById('video-model').value;
-
-                if (!model) {
-                    throw new Error('Please select a video model first. Click the ↻ Refresh button to load available models.');
-                }
-
-                const duration = parseInt(document.getElementById('video-duration').value);
-                const fps = parseInt(document.getElementById('video-fps').value);
-                const resolution = document.getElementById('video-resolution').value;
-
-                // Note: This endpoint might vary depending on Venice AI's actual API
-                // Adjust the endpoint and parameters based on Venice's video API documentation
-                const response = await apiRequest('/videos/generations', 'POST', {
-                    prompt,
-                    model,
-                    duration,
-                    fps,
-                    resolution,
-                    type: 'text-to-video'
-                });
-
-                if (response.data && response.data.length > 0) {
-                    const videoUrl = response.data[0].url || response.url;
-                    resultDiv.innerHTML = `
-                        <div class="video-card">
-                            <video controls>
-                                <source src="${videoUrl}" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>
-                            <div class="info">
-                                <strong>Prompt:</strong> ${prompt}<br>
-                                <strong>Model:</strong> ${model}<br>
-                                <strong>Duration:</strong> ${duration}s | <strong>FPS:</strong> ${fps} | <strong>Resolution:</strong> ${resolution}<br>
-                                <a href="${videoUrl}" download="venice-video.mp4" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background: #fff; color: #000; text-decoration: none; border-radius: 8px; font-weight: 500;">Download Video</a>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    resultDiv.innerHTML = '<div class="error">No video generated. The API might not support this endpoint yet.</div>';
-                }
-
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="error">${error.message}</div>`;
-            }
-        }
-
-        async function generateVideoFromImage() {
-            if (!uploadedImageData) {
-                alert('Please upload an image first');
+            if (!model || !msg) {
+                alert('Select a model and enter a message');
                 return;
             }
 
-            const resultDiv = document.getElementById('video-result');
-            resultDiv.innerHTML = '<div class="loading">Generating video from image... This may take a few minutes.<div class="progress-bar"><div class="progress-bar-fill" style="width: 50%"></div></div></div>';
+            // Show user message
+            output.innerHTML += '<div class="message user"><strong>You:</strong> ' + msg + '</div>';
+            document.getElementById('message').value = '';
 
             try {
-                const model = document.getElementById('video-model').value;
-
-                if (!model) {
-                    throw new Error('Please select a video model first. Click the ↻ Refresh button to load available models.');
-                }
-
-                const motionPrompt = document.getElementById('image-to-video-prompt').value.trim();
-                const duration = parseInt(document.getElementById('i2v-duration').value);
-                const fps = parseInt(document.getElementById('i2v-fps').value);
-
-                // Note: This endpoint might vary depending on Venice AI's actual API
-                // Adjust the endpoint and parameters based on Venice's video API documentation
-                const response = await apiRequest('/videos/generations', 'POST', {
-                    image: uploadedImageData,
-                    prompt: motionPrompt,
-                    model,
-                    duration,
-                    fps,
-                    type: 'image-to-video'
+                const res = await fetch(settings.apiUrl + '/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + settings.apiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [{ role: 'user', content: msg }]
+                    })
                 });
 
-                if (response.data && response.data.length > 0) {
-                    const videoUrl = response.data[0].url || response.url;
-                    resultDiv.innerHTML = `
-                        <div class="video-card">
-                            <video controls>
-                                <source src="${videoUrl}" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>
-                            <div class="info">
-                                <strong>Source:</strong> Image to Video<br>
-                                ${motionPrompt ? `<strong>Motion Prompt:</strong> ${motionPrompt}<br>` : ''}
-                                <strong>Model:</strong> ${model}<br>
-                                <strong>Duration:</strong> ${duration}s | <strong>FPS:</strong> ${fps}<br>
-                                <a href="${videoUrl}" download="venice-video.mp4" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background: #fff; color: #000; text-decoration: none; border-radius: 8px; font-weight: 500;">Download Video</a>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    resultDiv.innerHTML = '<div class="error">No video generated. The API might not support this endpoint yet.</div>';
-                }
+                if (!res.ok) throw new Error('API error: ' + res.status);
 
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="error">${error.message}</div>`;
+                const data = await res.json();
+                const reply = data.choices[0].message.content;
+
+                output.innerHTML += '<div class="message assistant"><strong>Assistant:</strong> ' + reply + '</div>';
+
+            } catch (e) {
+                output.innerHTML += '<div class="message error"><strong>Error:</strong> ' + e.message + '</div>';
             }
         }
 
-        // Load settings on page load
-        loadSettings();
-
-        // Load models when page loads (with a small delay to allow API key to be loaded)
-        setTimeout(() => {
-            if (settings.apiKey) {
-                loadChatModels();
-                loadImageModels();
-                loadVideoModels();
-            }
-        }, 500);
+        // Auto-load models if API key exists
+        if (settings.apiKey) {
+            loadModels();
+        }
     </script>
 </body>
 </html>
