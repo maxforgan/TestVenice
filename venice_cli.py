@@ -10,8 +10,22 @@ import json
 from venice_client import VeniceClient
 
 
-def chat_interactive(client: VeniceClient, model: str = "llama-3.3-70b"):
+def chat_interactive(client: VeniceClient, model: str = None):
     """Run an interactive chat session."""
+    # Get available models if no model specified
+    if not model:
+        try:
+            models_response = client.list_models()
+            if 'data' in models_response and len(models_response['data']) > 0:
+                model = models_response['data'][0]['id']
+                print(f"Using model: {model}")
+            else:
+                print("Warning: Could not fetch models, using default")
+                model = "llama-3.3-70b"
+        except:
+            print("Warning: Could not fetch models, using default")
+            model = "llama-3.3-70b"
+
     print("Venice AI Chat (type 'exit' or 'quit' to end, 'clear' to reset conversation)")
     print("=" * 70)
 
@@ -49,16 +63,42 @@ def chat_interactive(client: VeniceClient, model: str = "llama-3.3-70b"):
             print(f"\nError: {e}")
 
 
-def chat_single(client: VeniceClient, message: str, model: str = "llama-3.3-70b"):
+def chat_single(client: VeniceClient, message: str, model: str = None):
     """Send a single chat message."""
+    # Get available models if no model specified
+    if not model:
+        try:
+            models_response = client.list_models()
+            if 'data' in models_response and len(models_response['data']) > 0:
+                model = models_response['data'][0]['id']
+        except:
+            model = "llama-3.3-70b"
+
     messages = [{"role": "user", "content": message}]
     response = client.chat_completion(messages, model=model)
     print(response['choices'][0]['message']['content'])
 
 
-def generate_image_cmd(client: VeniceClient, prompt: str, output: str = "image.png", model: str = "fluently-xl"):
+def generate_image_cmd(client: VeniceClient, prompt: str, output: str = "image.png", model: str = None):
     """Generate an image from a prompt."""
+    # Get available image models if no model specified
+    if not model:
+        try:
+            models_response = client.list_models()
+            if 'data' in models_response:
+                # Try to find an image model
+                for m in models_response['data']:
+                    model_id = m['id'].lower()
+                    if 'flux' in model_id or 'stable' in model_id or 'fluently' in model_id:
+                        model = m['id']
+                        break
+                if not model:
+                    model = models_response['data'][0]['id']  # Use first available
+        except:
+            model = "fluently-xl"  # Fallback
+
     print(f"Generating image: {prompt}")
+    print(f"Using model: {model}")
     response = client.generate_image(prompt, model=model)
 
     if 'data' in response and len(response['data']) > 0:
@@ -108,14 +148,14 @@ def main():
     # Chat command
     chat_parser = subparsers.add_parser('chat', help='Chat with Venice AI')
     chat_parser.add_argument('--message', '-m', help='Single message (non-interactive)')
-    chat_parser.add_argument('--model', default='llama-3.3-70b', help='Model to use')
+    chat_parser.add_argument('--model', help='Model to use (auto-detects if not specified)')
     chat_parser.add_argument('--interactive', '-i', action='store_true', help='Interactive chat mode')
 
     # Image generation command
     image_parser = subparsers.add_parser('image', help='Generate an image')
     image_parser.add_argument('prompt', help='Image generation prompt')
     image_parser.add_argument('--output', '-o', default='image.png', help='Output file path')
-    image_parser.add_argument('--model', default='fluently-xl', help='Image model to use')
+    image_parser.add_argument('--model', help='Image model to use (auto-detects if not specified)')
 
     # List models command
     subparsers.add_parser('models', help='List available models')

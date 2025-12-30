@@ -269,11 +269,9 @@
         <div id="chat-panel" class="panel">
             <h2>Chat with Venice AI</h2>
             <div class="form-group">
-                <label for="chat-model">Model</label>
+                <label for="chat-model">Model <button onclick="loadChatModels()" style="padding: 5px 10px; margin-left: 10px;">↻ Refresh</button></label>
                 <select id="chat-model">
-                    <option value="llama-3.3-70b">Llama 3.3 70B</option>
-                    <option value="llama-3.1-405b">Llama 3.1 405B</option>
-                    <option value="nous-hermes-3">Nous Hermes 3</option>
+                    <option value="">Loading models...</option>
                 </select>
             </div>
             <div class="chat-container">
@@ -290,11 +288,9 @@
         <div id="image-panel" class="panel">
             <h2>Generate Images</h2>
             <div class="form-group">
-                <label for="image-model">Model</label>
+                <label for="image-model">Model <button onclick="loadImageModels()" style="padding: 5px 10px; margin-left: 10px;">↻ Refresh</button></label>
                 <select id="image-model">
-                    <option value="fluently-xl">Fluently XL</option>
-                    <option value="flux-pro">Flux Pro</option>
-                    <option value="stable-diffusion">Stable Diffusion</option>
+                    <option value="">Loading models...</option>
                 </select>
             </div>
             <div class="form-group">
@@ -344,7 +340,12 @@
             settings.apiKey = document.getElementById('api-key').value;
             settings.baseUrl = document.getElementById('api-base-url').value;
             localStorage.setItem('veniceSettings', JSON.stringify(settings));
-            document.getElementById('settings-message').innerHTML = '<div class="success">Settings saved successfully!</div>';
+            document.getElementById('settings-message').innerHTML = '<div class="success">Settings saved successfully! Loading models...</div>';
+
+            // Load models with the new API key
+            loadChatModels();
+            loadImageModels();
+
             setTimeout(() => {
                 document.getElementById('settings-message').innerHTML = '';
             }, 3000);
@@ -505,8 +506,109 @@
             }
         }
 
+        async function loadChatModels() {
+            const select = document.getElementById('chat-model');
+            const currentValue = select.value;
+
+            try {
+                const response = await apiRequest('/models');
+
+                if (response.data && response.data.length > 0) {
+                    // Filter for chat/text models (not image or audio)
+                    const chatModels = response.data.filter(model => {
+                        const id = model.id.toLowerCase();
+                        return !id.includes('flux') && !id.includes('stable') &&
+                               !id.includes('dall-e') && !id.includes('whisper') &&
+                               !id.includes('tts') && !id.includes('kokoro') &&
+                               !id.includes('fluently');
+                    });
+
+                    select.innerHTML = '';
+
+                    if (chatModels.length === 0) {
+                        // Fallback to all models if filtering resulted in none
+                        response.data.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model.id;
+                            option.textContent = model.id;
+                            select.appendChild(option);
+                        });
+                    } else {
+                        chatModels.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model.id;
+                            option.textContent = model.id;
+                            select.appendChild(option);
+                        });
+                    }
+
+                    // Restore previous selection if it exists
+                    if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
+                        select.value = currentValue;
+                    }
+                } else {
+                    select.innerHTML = '<option value="">No models available</option>';
+                }
+
+            } catch (error) {
+                select.innerHTML = `<option value="">Error loading models</option>`;
+                console.error('Error loading chat models:', error);
+            }
+        }
+
+        async function loadImageModels() {
+            const select = document.getElementById('image-model');
+            const currentValue = select.value;
+
+            try {
+                const response = await apiRequest('/models');
+
+                if (response.data && response.data.length > 0) {
+                    // Filter for image generation models
+                    const imageModels = response.data.filter(model => {
+                        const id = model.id.toLowerCase();
+                        return id.includes('flux') || id.includes('stable') ||
+                               id.includes('dall-e') || id.includes('fluently') ||
+                               id.includes('image') || id.includes('sdxl');
+                    });
+
+                    select.innerHTML = '';
+
+                    if (imageModels.length === 0) {
+                        select.innerHTML = '<option value="">No image models found</option>';
+                    } else {
+                        imageModels.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model.id;
+                            option.textContent = model.id;
+                            select.appendChild(option);
+                        });
+                    }
+
+                    // Restore previous selection if it exists
+                    if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
+                        select.value = currentValue;
+                    }
+                } else {
+                    select.innerHTML = '<option value="">No models available</option>';
+                }
+
+            } catch (error) {
+                select.innerHTML = `<option value="">Error loading models</option>`;
+                console.error('Error loading image models:', error);
+            }
+        }
+
         // Load settings on page load
         loadSettings();
+
+        // Load models when page loads (with a small delay to allow API key to be loaded)
+        setTimeout(() => {
+            if (settings.apiKey) {
+                loadChatModels();
+                loadImageModels();
+            }
+        }, 500);
     </script>
 </body>
 </html>

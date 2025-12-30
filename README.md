@@ -140,18 +140,14 @@ for model in models['data']:
 
 ### Available Models
 
-**Chat Models:**
-- `llama-3.3-70b` - Llama 3.3 70B (default)
-- `llama-3.1-405b` - Llama 3.1 405B
-- `nous-hermes-3` - Nous Hermes 3
+Venice AI regularly updates their available models. The interface automatically detects and loads all available models when you configure your API key.
 
-**Image Models:**
-- `fluently-xl` - Fluently XL (default)
-- `flux-pro` - Flux Pro
-- `stable-diffusion` - Stable Diffusion
+To see the current list of models:
+- **Web Interface**: Go to the "Models" tab and click "Refresh Models List"
+- **CLI**: Run `python3 venice_cli.py models`
+- **Python**: Use `client.list_models()`
 
-**Audio Models:**
-- `kokoro` - Kokoro TTS (default)
+The interface will automatically select appropriate models for chat and image generation if you don't specify one.
 
 ## Project Structure
 
