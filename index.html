@@ -344,6 +344,109 @@
             border-radius: 5px;
             margin-top: 15px;
         }
+
+        .video-mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-button {
+            flex: 1;
+            padding: 12px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .mode-button:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+
+        .mode-button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .video-upload-area {
+            border: 2px dashed #e0e0e0;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .video-upload-area:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .video-upload-area.has-file {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .video-preview {
+            margin-top: 20px;
+        }
+
+        .video-preview video {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .video-card video {
+            width: 100%;
+            max-height: 400px;
+            background: #000;
+        }
+
+        .video-card .info {
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
     </style>
 </head>
 <body>
@@ -357,6 +460,7 @@
             <button class="tab active" onclick="switchTab('settings')">Settings</button>
             <button class="tab" onclick="switchTab('chat')">Chat</button>
             <button class="tab" onclick="switchTab('image')">Image Generation</button>
+            <button class="tab" onclick="switchTab('video')">Video Generation</button>
             <button class="tab" onclick="switchTab('models')">Models</button>
         </div>
 
@@ -425,6 +529,108 @@
             <div id="image-result"></div>
         </div>
 
+        <!-- Video Generation Panel -->
+        <div id="video-panel" class="panel">
+            <h2>Generate Videos</h2>
+
+            <!-- Mode Selector -->
+            <div class="video-mode-selector">
+                <div class="mode-button active" onclick="switchVideoMode('text-to-video')" id="mode-text-to-video">
+                    📝 Text to Video
+                </div>
+                <div class="mode-button" onclick="switchVideoMode('image-to-video')" id="mode-image-to-video">
+                    🖼️ Image to Video
+                </div>
+            </div>
+
+            <!-- Model Selection -->
+            <div class="form-group">
+                <label for="video-model">Model <button onclick="loadVideoModels()" style="padding: 5px 10px; margin-left: 10px;">↻ Refresh</button></label>
+                <select id="video-model">
+                    <option value="">Loading models...</option>
+                </select>
+                <small style="color: #666; display: block; margin-top: 5px;">If no models appear, make sure you've saved your API key in Settings and click ↻ Refresh</small>
+            </div>
+
+            <!-- Text to Video Mode -->
+            <div id="text-to-video-mode">
+                <div class="form-group">
+                    <label for="video-prompt">Video Prompt</label>
+                    <textarea id="video-prompt" placeholder="Describe the video you want to generate... (e.g., 'A serene sunset over the ocean with waves gently crashing')"></textarea>
+                </div>
+
+                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label for="video-duration">Duration (seconds)</label>
+                        <input type="number" id="video-duration" value="5" min="1" max="30" step="1">
+                    </div>
+                    <div>
+                        <label for="video-fps">FPS</label>
+                        <select id="video-fps">
+                            <option value="24">24</option>
+                            <option value="30" selected>30</option>
+                            <option value="60">60</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="video-resolution">Resolution</label>
+                        <select id="video-resolution">
+                            <option value="512x512">512x512</option>
+                            <option value="768x768">768x768</option>
+                            <option value="1024x576" selected>1024x576 (16:9)</option>
+                            <option value="1280x720">1280x720 (HD)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="generateVideoFromText()">Generate Video from Text</button>
+            </div>
+
+            <!-- Image to Video Mode -->
+            <div id="image-to-video-mode" style="display: none;">
+                <div class="form-group">
+                    <label>Upload Image</label>
+                    <div class="video-upload-area" onclick="document.getElementById('image-upload').click()">
+                        <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                        <div id="upload-placeholder">
+                            <p style="font-size: 48px; margin: 0;">📁</p>
+                            <p>Click to upload an image</p>
+                            <small>Supported formats: JPG, PNG, WebP</small>
+                        </div>
+                        <div id="image-preview" style="display: none;">
+                            <img id="preview-img" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+                            <p id="image-filename" style="margin-top: 10px; font-weight: 600;"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="image-to-video-prompt">Motion Prompt (Optional)</label>
+                    <textarea id="image-to-video-prompt" placeholder="Describe the motion/animation you want... (e.g., 'Camera slowly zooms out', 'Clouds moving across the sky')"></textarea>
+                </div>
+
+                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label for="i2v-duration">Duration (seconds)</label>
+                        <input type="number" id="i2v-duration" value="5" min="1" max="30" step="1">
+                    </div>
+                    <div>
+                        <label for="i2v-fps">FPS</label>
+                        <select id="i2v-fps">
+                            <option value="24">24</option>
+                            <option value="30" selected>30</option>
+                            <option value="60">60</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="generateVideoFromImage()">Generate Video from Image</button>
+            </div>
+
+            <!-- Video Result -->
+            <div id="video-result"></div>
+        </div>
+
         <!-- Models Panel -->
         <div id="models-panel" class="panel">
             <h2>Available Models</h2>
@@ -459,6 +665,7 @@
             // Load models with the new API key
             loadChatModels();
             loadImageModels();
+            loadVideoModels();
 
             setTimeout(() => {
                 document.getElementById('settings-message').innerHTML = '';
@@ -852,6 +1059,218 @@
             }
         }
 
+        // Video generation functions
+        let uploadedImageData = null;
+
+        function switchVideoMode(mode) {
+            // Update button states
+            document.querySelectorAll('.mode-button').forEach(btn => btn.classList.remove('active'));
+
+            if (mode === 'text-to-video') {
+                document.getElementById('mode-text-to-video').classList.add('active');
+                document.getElementById('text-to-video-mode').style.display = 'block';
+                document.getElementById('image-to-video-mode').style.display = 'none';
+            } else {
+                document.getElementById('mode-image-to-video').classList.add('active');
+                document.getElementById('text-to-video-mode').style.display = 'none';
+                document.getElementById('image-to-video-mode').style.display = 'block';
+            }
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImageData = e.target.result;
+
+                // Show preview
+                document.getElementById('upload-placeholder').style.display = 'none';
+                document.getElementById('image-preview').style.display = 'block';
+                document.getElementById('preview-img').src = e.target.result;
+                document.getElementById('image-filename').textContent = file.name;
+
+                // Update upload area style
+                document.querySelector('.video-upload-area').classList.add('has-file');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function loadVideoModels() {
+            const select = document.getElementById('video-model');
+            const currentValue = select.value;
+
+            try {
+                const response = await apiRequest('/models');
+
+                if (response.data && response.data.length > 0) {
+                    // Filter for video generation models
+                    let videoModels = response.data.filter(model => {
+                        const id = model.id.toLowerCase();
+                        return id.includes('video') || id.includes('animate') ||
+                               id.includes('runway') || id.includes('pika') ||
+                               id.includes('gen-2') || id.includes('gen-3') ||
+                               id.includes('kling') || id.includes('sora');
+                    });
+
+                    select.innerHTML = '';
+
+                    // If no video-specific models found, show all models as fallback
+                    if (videoModels.length === 0) {
+                        console.warn('No video models found with standard filters, showing all models');
+                        videoModels = response.data;
+                    }
+
+                    if (videoModels.length > 0) {
+                        videoModels.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model.id;
+                            option.textContent = model.id;
+                            select.appendChild(option);
+                        });
+                    } else {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = 'No models available - check API key';
+                        select.appendChild(option);
+                    }
+
+                    // Restore previous selection if it exists
+                    if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
+                        select.value = currentValue;
+                    }
+                } else {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No models available - check API key';
+                    select.appendChild(option);
+                }
+
+            } catch (error) {
+                select.innerHTML = '';
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Error loading models - check API key';
+                select.appendChild(option);
+                console.error('Error loading video models:', error);
+            }
+        }
+
+        async function generateVideoFromText() {
+            const prompt = document.getElementById('video-prompt').value.trim();
+            if (!prompt) {
+                alert('Please enter a video prompt');
+                return;
+            }
+
+            const resultDiv = document.getElementById('video-result');
+            resultDiv.innerHTML = '<div class="loading">Generating video... This may take a few minutes.<div class="progress-bar"><div class="progress-bar-fill" style="width: 50%"></div></div></div>';
+
+            try {
+                const model = document.getElementById('video-model').value;
+
+                if (!model) {
+                    throw new Error('Please select a video model first. Click the ↻ Refresh button to load available models.');
+                }
+
+                const duration = parseInt(document.getElementById('video-duration').value);
+                const fps = parseInt(document.getElementById('video-fps').value);
+                const resolution = document.getElementById('video-resolution').value;
+
+                // Note: This endpoint might vary depending on Venice AI's actual API
+                // Adjust the endpoint and parameters based on Venice's video API documentation
+                const response = await apiRequest('/videos/generations', 'POST', {
+                    prompt,
+                    model,
+                    duration,
+                    fps,
+                    resolution,
+                    type: 'text-to-video'
+                });
+
+                if (response.data && response.data.length > 0) {
+                    const videoUrl = response.data[0].url || response.url;
+                    resultDiv.innerHTML = `
+                        <div class="video-card">
+                            <video controls>
+                                <source src="${videoUrl}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                            <div class="info">
+                                <strong>Prompt:</strong> ${prompt}<br>
+                                <strong>Model:</strong> ${model}<br>
+                                <strong>Duration:</strong> ${duration}s | <strong>FPS:</strong> ${fps} | <strong>Resolution:</strong> ${resolution}<br>
+                                <a href="${videoUrl}" download="venice-video.mp4" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Download Video</a>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<div class="error">No video generated. The API might not support this endpoint yet.</div>';
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">${error.message}</div>`;
+            }
+        }
+
+        async function generateVideoFromImage() {
+            if (!uploadedImageData) {
+                alert('Please upload an image first');
+                return;
+            }
+
+            const resultDiv = document.getElementById('video-result');
+            resultDiv.innerHTML = '<div class="loading">Generating video from image... This may take a few minutes.<div class="progress-bar"><div class="progress-bar-fill" style="width: 50%"></div></div></div>';
+
+            try {
+                const model = document.getElementById('video-model').value;
+
+                if (!model) {
+                    throw new Error('Please select a video model first. Click the ↻ Refresh button to load available models.');
+                }
+
+                const motionPrompt = document.getElementById('image-to-video-prompt').value.trim();
+                const duration = parseInt(document.getElementById('i2v-duration').value);
+                const fps = parseInt(document.getElementById('i2v-fps').value);
+
+                // Note: This endpoint might vary depending on Venice AI's actual API
+                // Adjust the endpoint and parameters based on Venice's video API documentation
+                const response = await apiRequest('/videos/generations', 'POST', {
+                    image: uploadedImageData,
+                    prompt: motionPrompt,
+                    model,
+                    duration,
+                    fps,
+                    type: 'image-to-video'
+                });
+
+                if (response.data && response.data.length > 0) {
+                    const videoUrl = response.data[0].url || response.url;
+                    resultDiv.innerHTML = `
+                        <div class="video-card">
+                            <video controls>
+                                <source src="${videoUrl}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                            <div class="info">
+                                <strong>Source:</strong> Image to Video<br>
+                                ${motionPrompt ? `<strong>Motion Prompt:</strong> ${motionPrompt}<br>` : ''}
+                                <strong>Model:</strong> ${model}<br>
+                                <strong>Duration:</strong> ${duration}s | <strong>FPS:</strong> ${fps}<br>
+                                <a href="${videoUrl}" download="venice-video.mp4" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Download Video</a>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<div class="error">No video generated. The API might not support this endpoint yet.</div>';
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">${error.message}</div>`;
+            }
+        }
+
         // Load settings on page load
         loadSettings();
 
@@ -860,6 +1279,7 @@
             if (settings.apiKey) {
                 loadChatModels();
                 loadImageModels();
+                loadVideoModels();
             }
         }, 500);
     </script>

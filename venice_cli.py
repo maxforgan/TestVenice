@@ -139,6 +139,98 @@ def text_to_speech_cmd(client: VeniceClient, text: str, output: str = "speech.mp
     print(f"Audio saved to: {output}")
 
 
+def generate_video_from_text_cmd(
+    client: VeniceClient,
+    prompt: str,
+    model: str,
+    output: str = "video.mp4",
+    duration: int = 5,
+    fps: int = 30,
+    resolution: str = "1024x576"
+):
+    """Generate a video from text prompt."""
+    print(f"Generating video from prompt: {prompt}")
+    print(f"Using model: {model}")
+    print(f"Duration: {duration}s | FPS: {fps} | Resolution: {resolution}")
+    print("This may take a few minutes...")
+
+    response = client.generate_video_from_text(prompt, model, duration, fps, resolution)
+
+    if 'data' in response and len(response['data']) > 0:
+        video_url = response['data'][0].get('url')
+        if video_url:
+            print(f"Video generated successfully!")
+            print(f"URL: {video_url}")
+
+            # Download video if output path specified
+            if output:
+                import requests
+                video_data = requests.get(video_url).content
+                with open(output, 'wb') as f:
+                    f.write(video_data)
+                print(f"Video saved to: {output}")
+        else:
+            print("Video generated but no URL returned")
+            print(json.dumps(response, indent=2))
+    else:
+        print("Error: No video data in response")
+        print(json.dumps(response, indent=2))
+
+
+def generate_video_from_image_cmd(
+    client: VeniceClient,
+    image_path: str,
+    model: str,
+    output: str = "video.mp4",
+    motion_prompt: str = None,
+    duration: int = 5,
+    fps: int = 30
+):
+    """Generate a video from an image."""
+    import base64
+
+    print(f"Loading image: {image_path}")
+
+    # Read and encode image
+    with open(image_path, 'rb') as f:
+        image_data = base64.b64encode(f.read()).decode('utf-8')
+
+    print(f"Generating video from image...")
+    print(f"Using model: {model}")
+    if motion_prompt:
+        print(f"Motion prompt: {motion_prompt}")
+    print(f"Duration: {duration}s | FPS: {fps}")
+    print("This may take a few minutes...")
+
+    response = client.generate_video_from_image(
+        f"data:image/png;base64,{image_data}",
+        model,
+        motion_prompt,
+        duration,
+        fps
+    )
+
+    if 'data' in response and len(response['data']) > 0:
+        video_url = response['data'][0].get('url')
+        if video_url:
+            print(f"Video generated successfully!")
+            print(f"URL: {video_url}")
+
+            # Download video if output path specified
+            if output:
+                import requests
+                video_data = requests.get(video_url).content
+                with open(output, 'wb') as f:
+                    f.write(video_data)
+                print(f"Video saved to: {output}")
+        else:
+            print("Video generated but no URL returned")
+            print(json.dumps(response, indent=2))
+    else:
+        print("Error: No video data in response")
+        print(json.dumps(response, indent=2))
+
+
 def main():
     parser = argparse.ArgumentParser(description='Venice AI CLI - Interact with Venice AI API')
     parser.add_argument('--api-key', help='Venice API key (or set VENICE_API_KEY env var)')
@@ -166,6 +258,24 @@ def main():
     tts_parser.add_argument('--output', '-o', default='speech.mp3', help='Output file path')
     tts_parser.add_argument('--model', default='kokoro', help='TTS model to use')
 
+    # Video generation (text-to-video) command
+    video_text_parser = subparsers.add_parser('video-text', help='Generate video from text')
+    video_text_parser.add_argument('prompt', help='Video generation prompt')
+    video_text_parser.add_argument('--model', required=True, help='Video model to use')
+    video_text_parser.add_argument('--output', '-o', default='video.mp4', help='Output file path')
+    video_text_parser.add_argument('--duration', type=int, default=5, help='Duration in seconds (default: 5)')
+    video_text_parser.add_argument('--fps', type=int, default=30, help='Frames per second (default: 30)')
+    video_text_parser.add_argument('--resolution', default='1024x576', help='Resolution (default: 1024x576)')
+
+    # Video generation (image-to-video) command
+    video_image_parser = subparsers.add_parser('video-image', help='Generate video from image')
+    video_image_parser.add_argument('image', help='Path to input image')
+    video_image_parser.add_argument('--model', required=True, help='Video model to use')
+    video_image_parser.add_argument('--output', '-o', default='video.mp4', help='Output file path')
+    video_image_parser.add_argument('--motion-prompt', help='Optional motion description')
+    video_image_parser.add_argument('--duration', type=int, default=5, help='Duration in seconds (default: 5)')
+    video_image_parser.add_argument('--fps', type=int, default=30, help='Frames per second (default: 30)')
+
     args = parser.parse_args()
 
     if not args.command:
@@ -189,6 +299,28 @@ def main():
 
         elif args.command == 'tts':
             text_to_speech_cmd(client, args.text, output=args.output, model=args.model)
+
+        elif args.command == 'video-text':
+            generate_video_from_text_cmd(
+                client,
+                args.prompt,
+                args.model,
+                output=args.output,
+                duration=args.duration,
+                fps=args.fps,
+                resolution=args.resolution
+            )
+
+        elif args.command == 'video-image':
+            generate_video_from_image_cmd(
+                client,
+                args.image,
+                args.model,
+                output=args.output,
+                motion_prompt=args.motion_prompt,
+                duration=args.duration,
+                fps=args.fps
+            )
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

@@ -149,6 +149,82 @@ class VeniceClient:
 
         return response.content
 
+    def generate_video_from_text(
+        self,
+        prompt: str,
+        model: str,
+        duration: int = 5,
+        fps: int = 30,
+        resolution: str = "1024x576"
+    ) -> Dict[str, Any]:
+        """
+        Generate a video from a text prompt.
+
+        Args:
+            prompt: Text description of the video to generate
+            model: Video generation model to use
+            duration: Video duration in seconds
+            fps: Frames per second
+            resolution: Video resolution (e.g., "1024x576", "1280x720")
+
+        Returns:
+            API response with video URL
+        """
+        endpoint = f"{self.base_url}/videos/generations"
+
+        payload = {
+            "prompt": prompt,
+            "model": model,
+            "duration": duration,
+            "fps": fps,
+            "resolution": resolution,
+            "type": "text-to-video"
+        }
+
+        response = requests.post(endpoint, headers=self.headers, json=payload)
+        response.raise_for_status()
+
+        return response.json()
+
+    def generate_video_from_image(
+        self,
+        image_data: str,
+        model: str,
+        motion_prompt: Optional[str] = None,
+        duration: int = 5,
+        fps: int = 30
+    ) -> Dict[str, Any]:
+        """
+        Generate a video from an image.
+
+        Args:
+            image_data: Base64 encoded image data or image URL
+            model: Video generation model to use
+            motion_prompt: Optional description of desired motion
+            duration: Video duration in seconds
+            fps: Frames per second
+
+        Returns:
+            API response with video URL
+        """
+        endpoint = f"{self.base_url}/videos/generations"
+
+        payload = {
+            "image": image_data,
+            "model": model,
+            "duration": duration,
+            "fps": fps,
+            "type": "image-to-video"
+        }
+
+        if motion_prompt:
+            payload["prompt"] = motion_prompt
+
+        response = requests.post(endpoint, headers=self.headers, json=payload)
+        response.raise_for_status()
+
+        return response.json()
+
 
 if __name__ == "__main__":
     # Example usage
