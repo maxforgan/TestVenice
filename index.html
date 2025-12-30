@@ -51,19 +51,19 @@
 
         .setup-banner {
             background: #1a1a1a;
-            border: 1px solid #333;
+            border: 1px solid #444;
             border-radius: 8px;
-            padding: 16px;
+            padding: 20px;
             margin: 20px;
             text-align: center;
-            color: #999;
-            font-size: 14px;
+            color: #bbb;
+            font-size: 15px;
+            line-height: 1.6;
         }
 
-        .setup-banner a {
+        .setup-banner strong {
             color: #fff;
-            text-decoration: underline;
-            cursor: pointer;
+            font-weight: 600;
         }
 
         .tabs {
@@ -75,18 +75,24 @@
         }
 
         .tab {
-            padding: 12px 20px;
+            padding: 16px 20px;
             background: transparent;
             border: none;
             color: #666;
-            font-size: 14px;
+            font-size: 15px;
             cursor: pointer;
             transition: all 0.2s;
             border-bottom: 2px solid transparent;
+            -webkit-tap-highlight-color: transparent;
+            min-width: 60px;
         }
 
         .tab:hover {
             color: #999;
+        }
+
+        .tab:active {
+            color: #fff;
         }
 
         .tab.active {
@@ -538,14 +544,30 @@
             .tabs {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .tabs::-webkit-scrollbar {
+                display: none;
             }
 
             .tab {
                 white-space: nowrap;
+                flex-shrink: 0;
             }
 
             .chat-container {
                 padding: 16px;
+            }
+
+            .setup-banner {
+                margin: 16px;
+                padding: 16px;
+                font-size: 14px;
+            }
+
+            .settings-section {
+                margin: 16px;
             }
         }
     </style>
@@ -567,7 +589,7 @@
 
         <!-- Setup Banner -->
         <div id="setup-banner" class="setup-banner" style="display: none;">
-            ⚙️ To get started, <a onclick="switchTab('settings', event)">configure your Venice API key in Settings</a>
+            ⚙️ To get started, tap <strong>Settings</strong> below to configure your Venice API key
         </div>
 
         <!-- Chat Panel -->
@@ -801,11 +823,24 @@
         }
 
         function switchTab(tabName, evt) {
+            // Remove active from all tabs and panels
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
 
-            evt.target.classList.add('active');
+            // Activate the selected panel
             document.getElementById(`${tabName}-panel`).classList.add('active');
+
+            // Activate the corresponding tab button
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            } else {
+                // Fallback: find and activate the tab by matching onclick attribute
+                document.querySelectorAll('.tab').forEach(tab => {
+                    if (tab.getAttribute('onclick').includes(`'${tabName}'`)) {
+                        tab.classList.add('active');
+                    }
+                });
+            }
 
             // Auto-focus chat input when switching to chat tab
             if (tabName === 'chat') {
