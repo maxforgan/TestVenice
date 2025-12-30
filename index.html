@@ -770,6 +770,7 @@
                         <input type="text" id="api-base-url" value="https://api.venice.ai/api/v1" placeholder="API base URL" style="font-size: 16px; padding: 14px;">
                     </div>
                     <button onclick="saveSettings()" style="width: 100%; padding: 16px; font-size: 16px; margin-top: 10px;">Save Settings</button>
+                    <button onclick="testConnection()" style="width: 100%; padding: 12px; font-size: 14px; margin-top: 10px; background: #1a1a1a; color: #fff; border: 1px solid #444;">Test API Connection</button>
                     <button onclick="clearLocalStorage()" style="width: 100%; padding: 12px; font-size: 14px; margin-top: 10px; background: #333; color: #fff;">Clear All Data</button>
                     <div id="settings-message"></div>
                 </div>
@@ -802,6 +803,39 @@
             }
         }
 
+        async function testConnection() {
+            const messageDiv = document.getElementById('settings-message');
+            const apiKey = document.getElementById('api-key').value;
+            const baseUrl = document.getElementById('api-base-url').value;
+
+            if (!apiKey) {
+                messageDiv.innerHTML = '<div class="error">Please enter an API key first</div>';
+                return;
+            }
+
+            messageDiv.innerHTML = '<div class="loading">Testing connection to Venice API...</div>';
+
+            try {
+                // Temporarily set settings for test
+                const tempSettings = { apiKey, baseUrl };
+                const oldSettings = { ...settings };
+                settings = tempSettings;
+
+                const response = await apiRequest('/models');
+
+                // Restore old settings
+                settings = oldSettings;
+
+                if (response.data && response.data.length > 0) {
+                    messageDiv.innerHTML = `<div class="success">✓ Connection successful!<br>Found ${response.data.length} models available.<br>First few models: ${response.data.slice(0, 3).map(m => m.id).join(', ')}</div>`;
+                } else {
+                    messageDiv.innerHTML = '<div class="error">Connection successful but no models found</div>';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = `<div class="error">Connection failed: ${error.message}<br><br>Please check:<br>1. API key is correct<br>2. You have an active Venice AI account<br>3. API base URL is correct</div>`;
+            }
+        }
+
         function updateSetupBanner() {
             const banner = document.getElementById('setup-banner');
             if (!settings.apiKey) {
@@ -811,25 +845,39 @@
             }
         }
 
-        function saveSettings() {
+        async function saveSettings() {
             settings.apiKey = document.getElementById('api-key').value;
             settings.baseUrl = document.getElementById('api-base-url').value;
+
+            if (!settings.apiKey || !settings.baseUrl) {
+                document.getElementById('settings-message').innerHTML = '<div class="error">Please enter both API key and base URL</div>';
+                return;
+            }
+
             localStorage.setItem('veniceSettings', JSON.stringify(settings));
-            document.getElementById('settings-message').innerHTML = '<div class="success">Settings saved successfully! Loading models...</div>';
+            document.getElementById('settings-message').innerHTML = '<div class="success">✓ Settings saved! Loading models...</div>';
 
             // Update banner visibility
             updateSetupBanner();
 
             // Load models with the new API key
-            loadChatModels();
-            loadImageModels();
-            loadVideoModels();
+            try {
+                await Promise.all([
+                    loadChatModels(),
+                    loadImageModels(),
+                    loadVideoModels()
+                ]);
 
-            setTimeout(() => {
-                document.getElementById('settings-message').innerHTML = '';
-                // Switch to Chat tab after saving
-                switchTab('chat');
-            }, 2000);
+                document.getElementById('settings-message').innerHTML = '<div class="success">✓ Settings saved! Models loaded successfully. Switching to Chat...</div>';
+
+                setTimeout(() => {
+                    document.getElementById('settings-message').innerHTML = '';
+                    // Switch to Chat tab after saving
+                    switchTab('chat');
+                }, 2000);
+            } catch (error) {
+                document.getElementById('settings-message').innerHTML = `<div class="error">Settings saved, but failed to load models: ${error.message}</div>`;
+            }
         }
 
         function switchTab(tabName, evt) {
@@ -1127,6 +1175,7 @@
             const currentValue = select.value;
 
             try {
+                select.innerHTML = '<option value="">Loading models...</option>';
                 const response = await apiRequest('/models');
 
                 if (response.data && response.data.length > 0) {
@@ -1161,13 +1210,18 @@
                     // Restore previous selection if it exists
                     if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
                         select.value = currentValue;
+                    } else if (select.options.length > 0) {
+                        // Select first model by default
+                        select.selectedIndex = 0;
                     }
+
+                    console.log(`Loaded ${select.options.length} chat models`);
                 } else {
                     select.innerHTML = '<option value="">No models available</option>';
                 }
 
             } catch (error) {
-                select.innerHTML = `<option value="">Error loading models</option>`;
+                select.innerHTML = `<option value="">Error: ${error.message}</option>`;
                 console.error('Error loading chat models:', error);
             }
         }
