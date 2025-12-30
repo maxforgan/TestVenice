@@ -7,6 +7,7 @@ A comprehensive interface for interacting with the Venice AI API. Venice AI prov
 - **Python Client Library**: Easy-to-use Python client for Venice AI API
 - **Command-Line Interface**: Interactive and scriptable CLI tool
 - **Web Interface**: Beautiful browser-based interface for all Venice AI features
+- **Mobile-Friendly**: Fully responsive web interface works on smartphones and tablets
 - **Multiple Capabilities**:
   - Chat with various LLM models
   - Generate images with text prompts
@@ -59,6 +60,15 @@ Features:
 - Interactive chat with AI models
 - Generate images from text prompts
 - Browse available models
+
+#### Using on Mobile
+
+The web interface is fully mobile-responsive! See [MOBILE_GUIDE.md](MOBILE_GUIDE.md) for detailed setup instructions.
+
+Quick options:
+- **Same WiFi**: Access from your phone at `http://YOUR-COMPUTER-IP:8000`
+- **GitHub Pages**: Deploy for access from anywhere
+- **Home Screen**: Add as a shortcut for app-like experience
 
 ### Command-Line Interface
 
@@ -150,7 +160,9 @@ for model in models['data']:
 ├── venice_client.py    # Python client library
 ├── venice_cli.py       # Command-line interface
 ├── index.html          # Web interface
+├── example.py          # Usage examples
 ├── README.md           # This file
+├── MOBILE_GUIDE.md     # Mobile setup instructions
 ├── requirements.txt    # Python dependencies
 └── .env.example        # Example environment file
 ```
