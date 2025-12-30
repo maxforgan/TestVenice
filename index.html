@@ -49,6 +49,23 @@
             margin-top: 8px;
         }
 
+        .setup-banner {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .setup-banner a {
+            color: #fff;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
         .tabs {
             display: flex;
             gap: 0;
@@ -541,11 +558,16 @@
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('chat')">Chat</button>
-            <button class="tab" onclick="switchTab('image')">Image</button>
-            <button class="tab" onclick="switchTab('video')">Video</button>
-            <button class="tab" onclick="switchTab('models')">Models</button>
-            <button class="tab" onclick="switchTab('settings')">Settings</button>
+            <button class="tab active" onclick="switchTab('chat', event)">Chat</button>
+            <button class="tab" onclick="switchTab('image', event)">Image</button>
+            <button class="tab" onclick="switchTab('video', event)">Video</button>
+            <button class="tab" onclick="switchTab('models', event)">Models</button>
+            <button class="tab" onclick="switchTab('settings', event)">Settings</button>
+        </div>
+
+        <!-- Setup Banner -->
+        <div id="setup-banner" class="setup-banner" style="display: none;">
+            ⚙️ To get started, <a onclick="switchTab('settings', event)">configure your Venice API key in Settings</a>
         </div>
 
         <!-- Chat Panel -->
@@ -599,6 +621,10 @@
         <div id="video-panel" class="panel">
             <div style="padding: 20px;">
                 <h2>Video Generation</h2>
+
+                <div style="background: #1a1a00; border: 1px solid #333300; color: #ffd700; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">
+                    ⚠️ Note: Video generation requires Venice API support for the <code style="background: #000; padding: 2px 6px; border-radius: 4px;">/videos/generations</code> endpoint. This feature may not be available yet.
+                </div>
 
                 <!-- Mode Selector -->
             <div class="video-mode-selector">
@@ -743,6 +769,16 @@
                 document.getElementById('api-key').value = settings.apiKey;
                 document.getElementById('api-base-url').value = settings.baseUrl;
             }
+            updateSetupBanner();
+        }
+
+        function updateSetupBanner() {
+            const banner = document.getElementById('setup-banner');
+            if (!settings.apiKey) {
+                banner.style.display = 'block';
+            } else {
+                banner.style.display = 'none';
+            }
         }
 
         function saveSettings() {
@@ -750,6 +786,9 @@
             settings.baseUrl = document.getElementById('api-base-url').value;
             localStorage.setItem('veniceSettings', JSON.stringify(settings));
             document.getElementById('settings-message').innerHTML = '<div class="success">Settings saved successfully! Loading models...</div>';
+
+            // Update banner visibility
+            updateSetupBanner();
 
             // Load models with the new API key
             loadChatModels();
@@ -761,11 +800,11 @@
             }, 3000);
         }
 
-        function switchTab(tabName) {
+        function switchTab(tabName, evt) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
 
-            event.target.classList.add('active');
+            evt.target.classList.add('active');
             document.getElementById(`${tabName}-panel`).classList.add('active');
 
             // Auto-focus chat input when switching to chat tab
