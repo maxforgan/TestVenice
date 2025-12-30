@@ -405,6 +405,7 @@
                 <select id="image-model">
                     <option value="">Loading models...</option>
                 </select>
+                <small style="color: #666; display: block; margin-top: 5px;">If no models appear, make sure you've saved your API key in Settings and click ↻ Refresh</small>
             </div>
             <div class="form-group">
                 <label for="image-prompt">Prompt</label>
@@ -675,6 +676,12 @@
 
             try {
                 const model = document.getElementById('image-model').value;
+
+                // Validate model is selected
+                if (!model) {
+                    throw new Error('Please select an image model first. Click the ↻ Refresh button to load available models.');
+                }
+
                 const width = parseInt(document.getElementById('image-width').value);
                 const height = parseInt(document.getElementById('image-height').value);
 
@@ -794,24 +801,34 @@
 
                 if (response.data && response.data.length > 0) {
                     // Filter for image generation models
-                    const imageModels = response.data.filter(model => {
+                    let imageModels = response.data.filter(model => {
                         const id = model.id.toLowerCase();
                         return id.includes('flux') || id.includes('stable') ||
                                id.includes('dall-e') || id.includes('fluently') ||
-                               id.includes('image') || id.includes('sdxl');
+                               id.includes('image') || id.includes('sdxl') ||
+                               id.includes('sd-') || id.includes('midjourney');
                     });
 
                     select.innerHTML = '';
 
+                    // If no image-specific models found, check for any available models
                     if (imageModels.length === 0) {
-                        select.innerHTML = '<option value="">No image models found</option>';
-                    } else {
+                        console.warn('No image models found with standard filters, showing all models');
+                        imageModels = response.data;
+                    }
+
+                    if (imageModels.length > 0) {
                         imageModels.forEach(model => {
                             const option = document.createElement('option');
                             option.value = model.id;
                             option.textContent = model.id;
                             select.appendChild(option);
                         });
+                    } else {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = 'No models available - check API key';
+                        select.appendChild(option);
                     }
 
                     // Restore previous selection if it exists
@@ -819,11 +836,18 @@
                         select.value = currentValue;
                     }
                 } else {
-                    select.innerHTML = '<option value="">No models available</option>';
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No models available - check API key';
+                    select.appendChild(option);
                 }
 
             } catch (error) {
-                select.innerHTML = `<option value="">Error loading models</option>`;
+                select.innerHTML = '';
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Error loading models - check API key';
+                select.appendChild(option);
                 console.error('Error loading image models:', error);
             }
         }
