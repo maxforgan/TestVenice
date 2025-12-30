@@ -154,25 +154,138 @@
             background: #f8f9fa;
             border-radius: 10px;
             margin-bottom: 15px;
+            position: relative;
+        }
+
+        .messages.empty::before {
+            content: "No messages yet. Start a conversation!";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #999;
+            font-size: 16px;
         }
 
         .message {
             margin-bottom: 15px;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 12px 15px;
+            border-radius: 12px;
             max-width: 80%;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .message.user {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             margin-left: auto;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
         .message.assistant {
             background: white;
             color: #333;
             border: 2px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .message-role {
+            font-weight: bold;
+        }
+
+        .message-time {
+            font-size: 11px;
+        }
+
+        .message-content {
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .message-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .message-actions button {
+            padding: 4px 8px;
+            font-size: 11px;
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: inherit;
+        }
+
+        .message.user .message-actions button {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .message-actions button:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .message.user .message-actions button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 15px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            max-width: 80px;
+            margin-bottom: 15px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
         }
 
         .message-input {
@@ -275,10 +388,10 @@
                 </select>
             </div>
             <div class="chat-container">
-                <div class="messages" id="chat-messages"></div>
+                <div class="messages empty" id="chat-messages"></div>
                 <div class="message-input">
-                    <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="handleChatKeypress(event)">
-                    <button onclick="sendMessage()">Send</button>
+                    <input type="text" id="chat-input" placeholder="Type your message and press Enter..." onkeypress="handleChatKeypress(event)">
+                    <button id="send-button" onclick="sendMessage()">Send</button>
                     <button onclick="clearChat()">Clear</button>
                 </div>
             </div>
@@ -357,6 +470,13 @@
 
             event.target.classList.add('active');
             document.getElementById(`${tabName}-panel`).classList.add('active');
+
+            // Auto-focus chat input when switching to chat tab
+            if (tabName === 'chat') {
+                setTimeout(() => {
+                    document.getElementById('chat-input').focus();
+                }, 100);
+            }
         }
 
         async function apiRequest(endpoint, method = 'GET', body = null) {
@@ -387,51 +507,160 @@
         }
 
         function handleChatKeypress(event) {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
                 sendMessage();
+            }
+        }
+
+        function formatTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Visual feedback
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        function showTypingIndicator() {
+            const messagesDiv = document.getElementById('chat-messages');
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.id = 'typing-indicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            messagesDiv.appendChild(indicator);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
             }
         }
 
         async function sendMessage() {
             const input = document.getElementById('chat-input');
+            const sendButton = document.getElementById('send-button');
             const message = input.value.trim();
 
             if (!message) return;
 
+            // Disable input while processing
+            input.disabled = true;
+            sendButton.disabled = true;
+
+            // Remove empty state
+            const messagesDiv = document.getElementById('chat-messages');
+            messagesDiv.classList.remove('empty');
+
+            // Display user message
             chatMessages.push({ role: 'user', content: message });
             displayMessage('user', message);
             input.value = '';
 
+            // Show typing indicator
+            showTypingIndicator();
+
             try {
                 const model = document.getElementById('chat-model').value;
+
+                if (!model) {
+                    throw new Error('Please select a model first');
+                }
+
                 const response = await apiRequest('/chat/completions', 'POST', {
                     model,
                     messages: chatMessages,
                     temperature: 0.7
                 });
 
+                hideTypingIndicator();
+
                 const assistantMessage = response.choices[0].message.content;
                 chatMessages.push({ role: 'assistant', content: assistantMessage });
                 displayMessage('assistant', assistantMessage);
 
             } catch (error) {
-                displayMessage('assistant', `Error: ${error.message}`, true);
+                hideTypingIndicator();
+                displayMessage('error', error.message, true);
+                // Remove the failed message from history
+                chatMessages.pop();
+            } finally {
+                // Re-enable input
+                input.disabled = false;
+                sendButton.disabled = false;
+                input.focus();
             }
         }
 
         function displayMessage(role, content, isError = false) {
             const messagesDiv = document.getElementById('chat-messages');
+
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${role}`;
-            if (isError) messageDiv.style.background = '#fee';
-            messageDiv.textContent = content;
+            messageDiv.className = `message ${isError ? 'assistant' : role}`;
+
+            if (isError) {
+                messageDiv.style.background = '#fee2e2';
+                messageDiv.style.borderColor = '#fca5a5';
+                messageDiv.style.color = '#991b1b';
+            }
+
+            // Create message header with role and time
+            const header = document.createElement('div');
+            header.className = 'message-header';
+
+            const roleSpan = document.createElement('span');
+            roleSpan.className = 'message-role';
+            roleSpan.textContent = isError ? 'Error' : (role === 'user' ? 'You' : 'Assistant');
+
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'message-time';
+            timeSpan.textContent = formatTime();
+
+            header.appendChild(roleSpan);
+            header.appendChild(timeSpan);
+
+            // Create message content
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+
+            // Create message actions
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'message-actions';
+
+            const copyBtn = document.createElement('button');
+            copyBtn.textContent = 'Copy';
+            copyBtn.onclick = () => copyToClipboard(content);
+
+            actionsDiv.appendChild(copyBtn);
+
+            // Assemble message
+            messageDiv.appendChild(header);
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(actionsDiv);
+
             messagesDiv.appendChild(messageDiv);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
         function clearChat() {
             chatMessages = [];
-            document.getElementById('chat-messages').innerHTML = '';
+            const messagesDiv = document.getElementById('chat-messages');
+            messagesDiv.innerHTML = '';
+            messagesDiv.classList.add('empty');
+            document.getElementById('chat-input').focus();
         }
 
         async function generateImage() {
