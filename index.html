@@ -308,6 +308,24 @@
         </div>
     </div>
 
+    <!-- Menu Modal -->
+    <div class="modal" id="menuModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Menu</h2>
+                <button class="close-btn" onclick="closeMenu()">×</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <button class="save-btn" onclick="openGames()" style="background: #4a9eff; font-size: 16px; padding: 15px;">
+                    🎮 Create Games
+                </button>
+                <button class="save-btn" onclick="closeMenu()" style="background: #333; font-size: 16px; padding: 15px;">
+                    Close Menu
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Settings Modal -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
@@ -331,6 +349,26 @@
             <button class="save-btn" onclick="testVideoAPI()" style="background: #444; margin-top: 10px;">Test Video Generation</button>
             <button class="save-btn" onclick="showAllModels()" style="background: #555; margin-top: 10px;">Debug: Show All Available Models</button>
             <div id="settingsMsg"></div>
+        </div>
+    </div>
+
+    <!-- Games Modal -->
+    <div class="modal" id="gamesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎮 Create a Mobile Game</h2>
+                <button class="close-btn" onclick="closeGames()">×</button>
+            </div>
+            <p style="color: #999; margin-bottom: 20px;">Describe the game you want to create and AI will generate it for you!</p>
+            <div class="form-group">
+                <label>Game Description</label>
+                <textarea id="gamePromptInput" placeholder="Example: Create a simple flappy bird clone with a rocket ship" style="width: 100%; min-height: 120px; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; font-family: inherit; font-size: 15px;"></textarea>
+            </div>
+            <button class="save-btn" onclick="generateGame()" style="background: #4a9eff; font-size: 16px;">
+                Generate Game
+            </button>
+            <div id="gameStatus" style="margin-top: 20px;"></div>
+            <div id="gameContainer" style="margin-top: 20px;"></div>
         </div>
     </div>
 
@@ -668,8 +706,127 @@
         }
 
         function toggleMenu() {
-            // Placeholder for menu functionality
-            alert('Menu coming soon!');
+            document.getElementById('menuModal').classList.add('active');
+        }
+
+        function closeMenu() {
+            document.getElementById('menuModal').classList.remove('active');
+        }
+
+        function openGames() {
+            closeMenu();
+            document.getElementById('gamesModal').classList.add('active');
+        }
+
+        function closeGames() {
+            document.getElementById('gamesModal').classList.remove('active');
+        }
+
+        async function generateGame() {
+            const prompt = document.getElementById('gamePromptInput').value.trim();
+            const statusDiv = document.getElementById('gameStatus');
+            const containerDiv = document.getElementById('gameContainer');
+
+            if (!prompt) {
+                statusDiv.innerHTML = '<div class="error">Please describe the game you want to create</div>';
+                return;
+            }
+
+            if (!settings.apiKey) {
+                statusDiv.innerHTML = '<div class="error">Please set your API key in Settings first</div>';
+                return;
+            }
+
+            statusDiv.innerHTML = '<div class="loading">Generating your game... This may take a moment.</div>';
+            containerDiv.innerHTML = '';
+
+            try {
+                const systemPrompt = `You are an expert HTML5 game developer. Create a complete, playable mobile game based on the user's description.
+
+IMPORTANT REQUIREMENTS:
+1. Generate a COMPLETE, SELF-CONTAINED HTML file with embedded CSS and JavaScript
+2. The game must work on mobile devices (touch controls)
+3. Use HTML5 Canvas for rendering
+4. Include touch event handlers for mobile
+5. Make it fun and visually appealing
+6. Include a score display
+7. Add simple sound effects using Web Audio API if appropriate
+8. Make sure the game is responsive and fits mobile screens
+9. Include a "Play Again" button when game ends
+10. Use only vanilla JavaScript - no external libraries
+
+Output ONLY the complete HTML code, nothing else. Start with <!DOCTYPE html> and end with </html>.`;
+
+                const res = await fetch(settings.apiUrl + '/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + settings.apiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'llama-3.3-70b',
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: prompt }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 4000
+                    })
+                });
+
+                if (!res.ok) {
+                    throw new Error('API error: ' + res.status);
+                }
+
+                const data = await res.json();
+                let gameCode = data.choices[0].message.content;
+
+                // Extract HTML if wrapped in code blocks
+                if (gameCode.includes('```html')) {
+                    gameCode = gameCode.split('```html')[1].split('```')[0].trim();
+                } else if (gameCode.includes('```')) {
+                    gameCode = gameCode.split('```')[1].split('```')[0].trim();
+                }
+
+                // Create iframe to display the game
+                const iframe = document.createElement('iframe');
+                iframe.style.width = '100%';
+                iframe.style.height = '600px';
+                iframe.style.border = '2px solid #333';
+                iframe.style.borderRadius = '12px';
+                iframe.style.background = '#fff';
+
+                containerDiv.innerHTML = '';
+                containerDiv.appendChild(iframe);
+
+                // Write game code to iframe
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write(gameCode);
+                iframeDoc.close();
+
+                statusDiv.innerHTML = '<div class="success">✓ Game generated successfully! Play it below.</div>';
+
+                // Add download button
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'save-btn';
+                downloadBtn.textContent = 'Download Game';
+                downloadBtn.style.marginTop = '10px';
+                downloadBtn.onclick = () => {
+                    const blob = new Blob([gameCode], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'my-game.html';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                };
+                statusDiv.appendChild(downloadBtn);
+
+            } catch (e) {
+                statusDiv.innerHTML = '<div class="error">Failed to generate game: ' + e.message + '</div>';
+                console.error('Game generation error:', e);
+            }
         }
 
         async function testImageAPI() {
