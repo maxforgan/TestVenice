@@ -395,23 +395,31 @@
                 if (currentMode === 'text') {
                     const filtered = allModels.filter(m => {
                         const id = m.id.toLowerCase();
-                        return !id.includes('flux') && !id.includes('stable') &&
-                               !id.includes('dall-e') && !id.includes('video') &&
-                               !id.includes('wan') && !id.includes('kling') &&
-                               !id.includes('veo') && !id.includes('ltx') && !id.includes('longcat');
+                        // Exclude image and video models
+                        return !id.includes('flux') && !id.includes('stable') && !id.includes('sd35') &&
+                               !id.includes('dall-e') && !id.includes('video') && !id.includes('image') &&
+                               !id.includes('wan') && !id.includes('kling') && !id.includes('veo') &&
+                               !id.includes('ltx') && !id.includes('longcat') && !id.includes('sora') &&
+                               !id.includes('qwen-image') && !id.includes('hidream') && !id.includes('lustify') &&
+                               !id.includes('seedream') && !id.includes('nano-banana') && !id.includes('z-image');
                     });
                     models = filtered.length > 0 ? filtered : allModels;
                 } else if (currentMode === 'image') {
                     const filtered = allModels.filter(m => {
                         const id = m.id.toLowerCase();
-                        return id.includes('flux') || id.includes('stable') || id.includes('dall-e') || id.includes('image');
+                        return id.includes('flux') || id.includes('stable') || id.includes('sd35') ||
+                               id.includes('dall-e') || id.includes('image') || id.includes('qwen-image') ||
+                               id.includes('hidream') || id.includes('lustify') || id.includes('seedream') ||
+                               id.includes('nano-banana') || id.includes('z-image') || id.includes('gpt-image') ||
+                               id.includes('anime');
                     });
                     models = filtered.length > 0 ? filtered : allModels;
                 } else if (currentMode === 'video') {
                     const filtered = allModels.filter(m => {
                         const id = m.id.toLowerCase();
                         return id.includes('video') || id.includes('wan') || id.includes('kling') ||
-                               id.includes('veo') || id.includes('ltx') || id.includes('longcat');
+                               id.includes('veo') || id.includes('ltx') || id.includes('longcat') ||
+                               id.includes('sora') || id.includes('ovi') || id.includes('img2vid');
                     });
                     models = filtered.length > 0 ? filtered : allModels;
                 }
