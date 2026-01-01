@@ -515,12 +515,11 @@
                         prompt: prompt,
                         model: model,
                         width: 1024,
-                        height: 1024,
-                        n: 1
+                        height: 1024
                     };
-                    console.log('Image request:', settings.apiUrl + '/images/generations', requestBody);
+                    console.log('Image request:', settings.apiUrl + '/image/generate', requestBody);
 
-                    const res = await fetch(settings.apiUrl + '/images/generations', {
+                    const res = await fetch(settings.apiUrl + '/image/generate', {
                         method: 'POST',
                         headers: {
                             'Authorization': 'Bearer ' + settings.apiKey,
@@ -537,22 +536,23 @@
 
                     const data = await res.json();
                     console.log('Image response:', data);
-                    const imageUrl = data.data?.[0]?.url || data.url;
+                    const imageUrl = data.url || data.images?.[0]?.url;
 
                     if (!imageUrl) throw new Error('No image URL in response');
 
                     output.innerHTML = `<img src="${imageUrl}" alt="Generated image">`;
 
                 } else if (currentMode === 'video') {
+                    // Video API endpoint not yet documented - try common patterns
                     output.innerHTML = '<div class="loading">Generating video... This may take a few minutes.</div>';
 
                     const requestBody = {
                         prompt: prompt,
                         model: model
                     };
-                    console.log('Video request:', settings.apiUrl + '/videos/generations', requestBody);
+                    console.log('Video request:', settings.apiUrl + '/video/generate', requestBody);
 
-                    const res = await fetch(settings.apiUrl + '/videos/generations', {
+                    const res = await fetch(settings.apiUrl + '/video/generate', {
                         method: 'POST',
                         headers: {
                             'Authorization': 'Bearer ' + settings.apiKey,
@@ -564,12 +564,12 @@
                     if (!res.ok) {
                         const errorText = await res.text();
                         console.error('Video API Error:', res.status, errorText);
-                        throw new Error(`API error: ${res.status} - ${errorText}`);
+                        throw new Error(`Video generation not available yet. Check <a href="https://docs.venice.ai" target="_blank">docs.venice.ai</a> for updates.`);
                     }
 
                     const data = await res.json();
                     console.log('Video response:', data);
-                    const videoUrl = data.data?.[0]?.url || data.url;
+                    const videoUrl = data.url || data.video_url;
 
                     if (!videoUrl) throw new Error('No video URL in response');
 
@@ -635,18 +635,17 @@
             msgDiv.innerHTML = '<div class="loading">Testing image generation endpoint...</div>';
 
             try {
-                const res = await fetch(url + '/images/generations', {
+                const res = await fetch(url + '/image/generate', {
                     method: 'POST',
                     headers: {
                         'Authorization': 'Bearer ' + key,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        prompt: "test",
+                        prompt: "a red cube",
                         model: "fluently-xl",
                         width: 512,
-                        height: 512,
-                        n: 1
+                        height: 512
                     })
                 });
 
@@ -654,7 +653,7 @@
                 console.log('Test response:', res.status, text);
 
                 if (res.status === 404) {
-                    msgDiv.innerHTML = '<div class="error">❌ Image generation endpoint not found (404).<br><br>Your Venice API key may not have access to image generation, or Venice API doesn\'t support this endpoint yet.<br><br>Check <a href="https://docs.venice.ai" target="_blank" style="color: #ff6b6b;">docs.venice.ai</a> for available features.</div>';
+                    msgDiv.innerHTML = '<div class="error">❌ Image generation endpoint not found (404).<br><br>Your Venice API key may not have access to image generation.<br><br>Check <a href="https://docs.venice.ai/api-reference/endpoint/image/generate" target="_blank" style="color: #ff6b6b;">docs.venice.ai</a> for details.</div>';
                 } else if (!res.ok) {
                     msgDiv.innerHTML = `<div class="error">API Error: ${res.status}<br>${text}</div>`;
                 } else {
