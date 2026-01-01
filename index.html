@@ -371,30 +371,44 @@
                     headers: { 'Authorization': 'Bearer ' + settings.apiKey }
                 });
 
-                if (!res.ok) throw new Error('API error');
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    console.error('API Error:', res.status, errorText);
+                    throw new Error('API error: ' + res.status);
+                }
 
                 const data = await res.json();
-                let models = data.data || [];
+                const allModels = data.data || [];
+                console.log('Total models:', allModels.length);
+
+                let models = [...allModels];
 
                 // Filter by mode
                 if (currentMode === 'text') {
-                    models = models.filter(m => {
+                    const filtered = allModels.filter(m => {
                         const id = m.id.toLowerCase();
                         return !id.includes('flux') && !id.includes('stable') &&
-                               !id.includes('dall-e') && !id.includes('video');
+                               !id.includes('dall-e') && !id.includes('video') &&
+                               !id.includes('wan') && !id.includes('kling') &&
+                               !id.includes('veo') && !id.includes('ltx') && !id.includes('longcat');
                     });
+                    models = filtered.length > 0 ? filtered : allModels;
                 } else if (currentMode === 'image') {
-                    models = models.filter(m => {
+                    const filtered = allModels.filter(m => {
                         const id = m.id.toLowerCase();
-                        return id.includes('flux') || id.includes('stable') || id.includes('dall-e');
+                        return id.includes('flux') || id.includes('stable') || id.includes('dall-e') || id.includes('image');
                     });
+                    models = filtered.length > 0 ? filtered : allModels;
                 } else if (currentMode === 'video') {
-                    models = models.filter(m => {
+                    const filtered = allModels.filter(m => {
                         const id = m.id.toLowerCase();
                         return id.includes('video') || id.includes('wan') || id.includes('kling') ||
                                id.includes('veo') || id.includes('ltx') || id.includes('longcat');
                     });
+                    models = filtered.length > 0 ? filtered : allModels;
                 }
+
+                console.log('Filtered models for', currentMode + ':', models.length);
 
                 select.innerHTML = '';
                 models.forEach(m => {
@@ -405,10 +419,11 @@
                 });
 
                 if (models.length === 0) {
-                    select.innerHTML = '<option>No models</option>';
+                    select.innerHTML = '<option>No models available</option>';
                 }
             } catch (e) {
-                select.innerHTML = '<option>Error</option>';
+                console.error('Error loading models:', e);
+                select.innerHTML = '<option>Error: ' + e.message + '</option>';
             }
         }
 
