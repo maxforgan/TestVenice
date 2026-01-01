@@ -359,7 +359,17 @@
                 <h2>🎮 Create a Mobile Game</h2>
                 <button class="close-btn" onclick="closeGames()">×</button>
             </div>
-            <p style="color: #999; margin-bottom: 20px;">Describe the game you want to create and AI will generate it for you!</p>
+            <p style="color: #999; margin-bottom: 20px;">Choose a game type or describe your own custom game!</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <button class="save-btn" onclick="selectGameType('sudoku')" style="background: #ff6b6b; font-size: 14px; padding: 12px;">
+                    🧩 Sudoku Game
+                </button>
+                <button class="save-btn" onclick="selectGameType('story')" style="background: #51cf66; font-size: 14px; padding: 12px;">
+                    🗺️ Story/Map Game
+                </button>
+            </div>
+
             <div class="form-group">
                 <label>Game Description</label>
                 <textarea id="gamePromptInput" placeholder="Example: Create a simple flappy bird clone with a rocket ship" style="width: 100%; min-height: 120px; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; font-family: inherit; font-size: 15px;"></textarea>
@@ -720,6 +730,16 @@
 
         function closeGames() {
             document.getElementById('gamesModal').classList.remove('active');
+        }
+
+        function selectGameType(type) {
+            const promptInput = document.getElementById('gamePromptInput');
+
+            if (type === 'sudoku') {
+                promptInput.value = 'Create an interactive Sudoku puzzle game with:\n- 9x9 grid with proper sudoku rules\n- Difficulty selector (Easy, Medium, Hard)\n- Number input buttons\n- Check solution button\n- Hint system\n- Timer\n- Clean, mobile-friendly interface with touch support\n- Highlight selected cell and related cells\n- Show errors when invalid numbers are placed';
+            } else if (type === 'story') {
+                promptInput.value = 'Create an interactive story-based adventure game with:\n- Multiple choice decisions that affect the story\n- A simple map showing player location\n- Inventory system for items\n- Character stats (health, items collected)\n- At least 5 different story scenarios\n- Mobile-friendly touch interface\n- Save/load progress feature\n- Engaging storyline with meaningful choices\n- Visual indicators for different locations';
+            }
         }
 
         async function generateGame() {
