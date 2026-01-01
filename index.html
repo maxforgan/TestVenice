@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Venice</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -70,8 +70,16 @@
         /* Bottom Input Area */
         .input-area {
             padding: 20px;
+            padding-bottom: 80px;
             border-top: 1px solid #1a1a1a;
             background: #000;
+        }
+
+        /* iOS Safari bottom bar fix */
+        @supports (padding: max(0px)) {
+            .input-area {
+                padding-bottom: max(80px, calc(env(safe-area-inset-bottom) + 40px));
+            }
         }
 
         .input-container {
