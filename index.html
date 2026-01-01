@@ -531,6 +531,9 @@
                     if (!res.ok) {
                         const errorText = await res.text();
                         console.error('Image API Error:', res.status, errorText);
+                        if (res.status === 404) {
+                            throw new Error('Image generation not available with your API key. Visit <a href="https://venice.ai/account" target="_blank" style="color: #ff6b6b;">venice.ai/account</a> to enable it.');
+                        }
                         throw new Error(`API error: ${res.status} - ${errorText}`);
                     }
 
@@ -653,7 +656,7 @@
                 console.log('Test response:', res.status, text);
 
                 if (res.status === 404) {
-                    msgDiv.innerHTML = '<div class="error">❌ Image generation endpoint not found (404).<br><br>Your Venice API key may not have access to image generation.<br><br>Check <a href="https://docs.venice.ai/api-reference/endpoint/image/generate" target="_blank" style="color: #ff6b6b;">docs.venice.ai</a> for details.</div>';
+                    msgDiv.innerHTML = '<div class="error">❌ Image generation not available (404).<br><br><strong>Your API key does not have image generation access.</strong><br><br>To enable image generation:<br>1. Visit <a href="https://venice.ai/account" target="_blank" style="color: #ff6b6b;">venice.ai/account</a><br>2. Check your API plan/credits<br>3. Ensure image generation is enabled<br><br>Currently, only <strong>text chat works</strong> with your key.</div>';
                 } else if (!res.ok) {
                     msgDiv.innerHTML = `<div class="error">API Error: ${res.status}<br>${text}</div>`;
                 } else {
