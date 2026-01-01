@@ -721,9 +721,37 @@
                 return;
             }
 
-            msgDiv.innerHTML = '<div class="loading">Testing video generation endpoint...</div>';
+            msgDiv.innerHTML = '<div class="loading">Finding available video models...</div>';
 
             try {
+                // First, fetch available models to get a valid video model
+                const modelsRes = await fetch(url + '/models', {
+                    headers: { 'Authorization': 'Bearer ' + key }
+                });
+
+                if (!modelsRes.ok) {
+                    throw new Error('Failed to fetch models: ' + modelsRes.status);
+                }
+
+                const modelsData = await modelsRes.json();
+                const allModels = modelsData.data || [];
+
+                // Find video models
+                const videoModels = allModels.filter(m => {
+                    const id = m.id.toLowerCase();
+                    return id.includes('video') || id.includes('wan') || id.includes('kling') ||
+                           id.includes('veo') || id.includes('ltx') || id.includes('longcat') ||
+                           id.includes('sora') || id.includes('ovi');
+                });
+
+                if (videoModels.length === 0) {
+                    msgDiv.innerHTML = '<div class="error">❌ No video models available.<br><br>Your API key may not have access to video generation.<br><br>Visit <a href="https://venice.ai/settings/api" target="_blank" style="color: #ff6b6b;">venice.ai/settings/api</a> to check your account.</div>';
+                    return;
+                }
+
+                const testModel = videoModels[0].id;
+                msgDiv.innerHTML = '<div class="loading">Testing video generation with model: ' + testModel + '...</div>';
+
                 const res = await fetch(url + '/video/queue', {
                     method: 'POST',
                     headers: {
@@ -732,7 +760,7 @@
                     },
                     body: JSON.stringify({
                         prompt: "a red cube rotating",
-                        model: "wan-2.5-preview",
+                        model: testModel,
                         duration: "5s",
                         resolution: "720p",
                         audio: true
@@ -743,7 +771,7 @@
                 console.log('Video test response:', res.status, text);
 
                 if (res.status === 404) {
-                    msgDiv.innerHTML = '<div class="error">❌ Video generation endpoint not found (404).<br><br><strong>Possible issues:</strong><br>1. Your API key does not have video generation access<br>2. Insufficient credits/DIEM balance<br>3. API endpoint may have changed<br><br>Check:<br>• Visit <a href="https://venice.ai/settings/api" target="_blank" style="color: #ff6b6b;">venice.ai/settings/api</a><br>• Verify you have staked DIEM or credits<br>• Check API key type (ADMIN vs INFERENCE)<br><br><strong>Response:</strong> ' + text + '</div>';
+                    msgDiv.innerHTML = '<div class="error">❌ Video generation endpoint not found (404).<br><br><strong>Response:</strong> ' + text + '<br><br>Visit <a href="https://venice.ai/settings/api" target="_blank" style="color: #ff6b6b;">venice.ai/settings/api</a></div>';
                 } else if (res.status === 401) {
                     msgDiv.innerHTML = '<div class="error">❌ Unauthorized (401) - Check your API key</div>';
                 } else if (res.status === 402) {
@@ -752,7 +780,7 @@
                     msgDiv.innerHTML = `<div class="error">API Error: ${res.status}<br><strong>Response:</strong><br>${text}</div>`;
                 } else {
                     const data = JSON.parse(text);
-                    msgDiv.innerHTML = '<div class="success">✓ Video generation works!<br><br>Request queued successfully.<br>Request ID: ' + (data.request_id || data.id || 'Unknown') + '<br><br>You can use video mode.</div>';
+                    msgDiv.innerHTML = '<div class="success">✓ Video generation works!<br><br><strong>Model:</strong> ' + testModel + '<br><strong>Request ID:</strong> ' + (data.request_id || data.id || 'Unknown') + '<br><br>You can use video mode.</div>';
                 }
             } catch (e) {
                 msgDiv.innerHTML = `<div class="error">Test failed: ${e.message}</div>`;
