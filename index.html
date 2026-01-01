@@ -551,7 +551,10 @@
                     // Step 1: Queue video generation
                     const queueBody = {
                         prompt: prompt,
-                        model: model
+                        model: model,
+                        duration: "5s",  // Required: "5s" or "10s"
+                        resolution: "720p",  // Default: "1080p", "720p", or "480p"
+                        audio: true  // Generate audio
                     };
                     console.log('Video queue:', settings.apiUrl + '/video/queue', queueBody);
 
