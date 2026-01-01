@@ -326,6 +326,7 @@
             </div>
             <button class="save-btn" onclick="saveSettings()">Save Settings</button>
             <button class="save-btn" onclick="testImageAPI()" style="background: #333; margin-top: 10px;">Test Image Generation</button>
+            <button class="save-btn" onclick="testVideoAPI()" style="background: #444; margin-top: 10px;">Test Video Generation</button>
             <div id="settingsMsg"></div>
         </div>
     </div>
@@ -704,6 +705,54 @@
                     msgDiv.innerHTML = `<div class="error">API Error: ${res.status}<br>${text}</div>`;
                 } else {
                     msgDiv.innerHTML = '<div class="success">✓ Image generation works! You can use image mode.</div>';
+                }
+            } catch (e) {
+                msgDiv.innerHTML = `<div class="error">Test failed: ${e.message}</div>`;
+            }
+        }
+
+        async function testVideoAPI() {
+            const msgDiv = document.getElementById('settingsMsg');
+            const key = document.getElementById('apiKeyInput').value.trim();
+            const url = document.getElementById('apiUrlInput').value.trim();
+
+            if (!key) {
+                msgDiv.innerHTML = '<div class="error">Enter API key first</div>';
+                return;
+            }
+
+            msgDiv.innerHTML = '<div class="loading">Testing video generation endpoint...</div>';
+
+            try {
+                const res = await fetch(url + '/video/queue', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + key,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: "a red cube rotating",
+                        model: "wan-2.5-preview",
+                        duration: "5s",
+                        resolution: "720p",
+                        audio: true
+                    })
+                });
+
+                const text = await res.text();
+                console.log('Video test response:', res.status, text);
+
+                if (res.status === 404) {
+                    msgDiv.innerHTML = '<div class="error">❌ Video generation endpoint not found (404).<br><br><strong>Possible issues:</strong><br>1. Your API key does not have video generation access<br>2. Insufficient credits/DIEM balance<br>3. API endpoint may have changed<br><br>Check:<br>• Visit <a href="https://venice.ai/settings/api" target="_blank" style="color: #ff6b6b;">venice.ai/settings/api</a><br>• Verify you have staked DIEM or credits<br>• Check API key type (ADMIN vs INFERENCE)<br><br><strong>Response:</strong> ' + text + '</div>';
+                } else if (res.status === 401) {
+                    msgDiv.innerHTML = '<div class="error">❌ Unauthorized (401) - Check your API key</div>';
+                } else if (res.status === 402) {
+                    msgDiv.innerHTML = '<div class="error">❌ Payment Required (402) - Insufficient credits/balance<br><br>Visit <a href="https://venice.ai/settings/api" target="_blank" style="color: #ff6b6b;">venice.ai/settings/api</a> to add credits</div>';
+                } else if (!res.ok) {
+                    msgDiv.innerHTML = `<div class="error">API Error: ${res.status}<br><strong>Response:</strong><br>${text}</div>`;
+                } else {
+                    const data = JSON.parse(text);
+                    msgDiv.innerHTML = '<div class="success">✓ Video generation works!<br><br>Request queued successfully.<br>Request ID: ' + (data.request_id || data.id || 'Unknown') + '<br><br>You can use video mode.</div>';
                 }
             } catch (e) {
                 msgDiv.innerHTML = `<div class="error">Test failed: ${e.message}</div>`;
