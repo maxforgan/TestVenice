@@ -366,18 +366,16 @@
 
         // Hardcoded Venice models (fallback if API doesn't provide them)
         const knownImageModels = [
-            { id: 'flux-1.1-pro', name: 'Flux 2 Pro' },
+            { id: 'fluently-xl', name: 'Fluently XL' },
             { id: 'flux-pro', name: 'Flux Pro' },
-            { id: 'sd-3.5', name: 'Venice SD35' },
-            { id: 'dall-e-3', name: 'DALL-E 3' }
+            { id: 'flux-1.1-pro', name: 'Flux 1.1 Pro' },
+            { id: 'stable-diffusion-xl', name: 'Stable Diffusion XL' }
         ];
 
         const knownVideoModels = [
             { id: 'wan-2.5-preview', name: 'Wan 2.5 Preview' },
-            { id: 'ltx-video-2.0', name: 'LTX Video 2.0' },
-            { id: 'kling-2.6-pro', name: 'Kling 2.6 Pro' },
-            { id: 'veo-3', name: 'Veo 3' },
-            { id: 'sora-2', name: 'Sora 2' }
+            { id: 'ltx-video', name: 'LTX Video' },
+            { id: 'kling-1.5', name: 'Kling 1.5' }
         ];
 
         // Load models
@@ -512,28 +510,46 @@
                 } else if (currentMode === 'image') {
                     output.innerHTML = '<div class="loading">Generating image...</div>';
 
+                    const requestBody = {
+                        prompt: prompt,
+                        model: model,
+                        width: 1024,
+                        height: 1024,
+                        n: 1
+                    };
+                    console.log('Image request:', settings.apiUrl + '/images/generations', requestBody);
+
                     const res = await fetch(settings.apiUrl + '/images/generations', {
                         method: 'POST',
                         headers: {
                             'Authorization': 'Bearer ' + settings.apiKey,
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({
-                            prompt: prompt,
-                            model: model,
-                            n: 1
-                        })
+                        body: JSON.stringify(requestBody)
                     });
 
-                    if (!res.ok) throw new Error('API error: ' + res.status);
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        console.error('Image API Error:', res.status, errorText);
+                        throw new Error(`API error: ${res.status} - ${errorText}`);
+                    }
 
                     const data = await res.json();
-                    const imageUrl = data.data[0].url;
+                    console.log('Image response:', data);
+                    const imageUrl = data.data?.[0]?.url || data.url;
+
+                    if (!imageUrl) throw new Error('No image URL in response');
 
                     output.innerHTML = `<img src="${imageUrl}" alt="Generated image">`;
 
                 } else if (currentMode === 'video') {
                     output.innerHTML = '<div class="loading">Generating video... This may take a few minutes.</div>';
+
+                    const requestBody = {
+                        prompt: prompt,
+                        model: model
+                    };
+                    console.log('Video request:', settings.apiUrl + '/videos/generations', requestBody);
 
                     const res = await fetch(settings.apiUrl + '/videos/generations', {
                         method: 'POST',
@@ -541,16 +557,20 @@
                             'Authorization': 'Bearer ' + settings.apiKey,
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({
-                            prompt: prompt,
-                            model: model
-                        })
+                        body: JSON.stringify(requestBody)
                     });
 
-                    if (!res.ok) throw new Error('API error: ' + res.status);
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        console.error('Video API Error:', res.status, errorText);
+                        throw new Error(`API error: ${res.status} - ${errorText}`);
+                    }
 
                     const data = await res.json();
-                    const videoUrl = data.data ? data.data[0].url : data.url;
+                    console.log('Video response:', data);
+                    const videoUrl = data.data?.[0]?.url || data.url;
+
+                    if (!videoUrl) throw new Error('No video URL in response');
 
                     output.innerHTML = `
                         <video controls autoplay>
