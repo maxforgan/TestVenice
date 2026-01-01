@@ -364,6 +364,22 @@
             loadModels();
         }
 
+        // Hardcoded Venice models (fallback if API doesn't provide them)
+        const knownImageModels = [
+            { id: 'flux-1.1-pro', name: 'Flux 2 Pro' },
+            { id: 'flux-pro', name: 'Flux Pro' },
+            { id: 'sd-3.5', name: 'Venice SD35' },
+            { id: 'dall-e-3', name: 'DALL-E 3' }
+        ];
+
+        const knownVideoModels = [
+            { id: 'wan-2.5-preview', name: 'Wan 2.5 Preview' },
+            { id: 'ltx-video-2.0', name: 'LTX Video 2.0' },
+            { id: 'kling-2.6-pro', name: 'Kling 2.6 Pro' },
+            { id: 'veo-3', name: 'Veo 3' },
+            { id: 'sora-2', name: 'Sora 2' }
+        ];
+
         // Load models
         async function loadModels() {
             if (!settings.apiKey) {
@@ -388,6 +404,7 @@
                 const data = await res.json();
                 const allModels = data.data || [];
                 console.log('Total models:', allModels.length);
+                console.log('All model IDs:', allModels.map(m => m.id).join(', '));
 
                 let models = [...allModels];
 
@@ -396,24 +413,25 @@
                     const filtered = allModels.filter(m => {
                         const id = m.id.toLowerCase();
                         // Exclude image and video models
-                        return !id.includes('flux') && !id.includes('stable') && !id.includes('sd35') &&
+                        return !id.includes('flux') && !id.includes('stable') && !id.includes('sd') &&
                                !id.includes('dall-e') && !id.includes('video') && !id.includes('image') &&
                                !id.includes('wan') && !id.includes('kling') && !id.includes('veo') &&
                                !id.includes('ltx') && !id.includes('longcat') && !id.includes('sora') &&
                                !id.includes('qwen-image') && !id.includes('hidream') && !id.includes('lustify') &&
-                               !id.includes('seedream') && !id.includes('nano-banana') && !id.includes('z-image');
+                               !id.includes('seedream') && !id.includes('nano') && !id.includes('z-image');
                     });
                     models = filtered.length > 0 ? filtered : allModels;
                 } else if (currentMode === 'image') {
                     const filtered = allModels.filter(m => {
                         const id = m.id.toLowerCase();
-                        return id.includes('flux') || id.includes('stable') || id.includes('sd35') ||
-                               id.includes('dall-e') || id.includes('image') || id.includes('qwen-image') ||
+                        return id.includes('flux') || id.includes('stable') || id.includes('sd') ||
+                               id.includes('dall-e') || id.includes('image') || id.includes('qwen') ||
                                id.includes('hidream') || id.includes('lustify') || id.includes('seedream') ||
-                               id.includes('nano-banana') || id.includes('z-image') || id.includes('gpt-image') ||
+                               id.includes('nano') || id.includes('z-image') || id.includes('gpt-image') ||
                                id.includes('anime');
                     });
-                    models = filtered.length > 0 ? filtered : allModels;
+                    // If API doesn't return image models, use hardcoded list
+                    models = filtered.length > 0 ? filtered : knownImageModels;
                 } else if (currentMode === 'video') {
                     const filtered = allModels.filter(m => {
                         const id = m.id.toLowerCase();
@@ -421,7 +439,8 @@
                                id.includes('veo') || id.includes('ltx') || id.includes('longcat') ||
                                id.includes('sora') || id.includes('ovi') || id.includes('img2vid');
                     });
-                    models = filtered.length > 0 ? filtered : allModels;
+                    // If API doesn't return video models, use hardcoded list
+                    models = filtered.length > 0 ? filtered : knownVideoModels;
                 }
 
                 console.log('Filtered models for', currentMode + ':', models.length);
@@ -430,7 +449,8 @@
                 models.forEach(m => {
                     const opt = document.createElement('option');
                     opt.value = m.id;
-                    opt.textContent = m.id.length > 20 ? m.id.substring(0, 20) + '...' : m.id;
+                    const displayName = m.name || m.id;
+                    opt.textContent = displayName.length > 25 ? displayName.substring(0, 25) + '...' : displayName;
                     select.appendChild(opt);
                 });
 
