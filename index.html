@@ -747,6 +747,34 @@
             containerDiv.innerHTML = '';
 
             try {
+                // First, let's get a valid text model
+                statusDiv.innerHTML = '<div class="loading">Finding best AI model for game generation...</div>';
+
+                const modelsRes = await fetch(settings.apiUrl + '/models', {
+                    headers: { 'Authorization': 'Bearer ' + settings.apiKey }
+                });
+
+                if (!modelsRes.ok) {
+                    throw new Error('Failed to fetch models. Status: ' + modelsRes.status);
+                }
+
+                const modelsData = await modelsRes.json();
+                const allModels = modelsData.data || [];
+
+                // Find a good text model (prefer llama-3.3-70b, claude, or gpt-4)
+                let gameModel = allModels.find(m => m.id === 'llama-3.3-70b');
+                if (!gameModel) gameModel = allModels.find(m => m.id.includes('claude'));
+                if (!gameModel) gameModel = allModels.find(m => m.id.includes('gpt-4'));
+                if (!gameModel) gameModel = allModels.find(m => m.id.includes('llama'));
+                if (!gameModel) gameModel = allModels[0]; // fallback to first available
+
+                if (!gameModel) {
+                    throw new Error('No text models available for your API key');
+                }
+
+                console.log('Using model for game generation:', gameModel.id);
+                statusDiv.innerHTML = '<div class="loading">Generating your game with ' + gameModel.id + '... This may take a moment.</div>';
+
                 const systemPrompt = `You are an expert HTML5 game developer. Create a complete, playable mobile game based on the user's description.
 
 IMPORTANT REQUIREMENTS:
@@ -770,7 +798,7 @@ Output ONLY the complete HTML code, nothing else. Start with <!DOCTYPE html> and
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: 'llama-3.3-70b',
+                        model: gameModel.id,
                         messages: [
                             { role: 'system', content: systemPrompt },
                             { role: 'user', content: prompt }
@@ -782,6 +810,7 @@ Output ONLY the complete HTML code, nothing else. Start with <!DOCTYPE html> and
 
                 if (!res.ok) {
                     const errorText = await res.text();
+                    console.error('API Error Response:', errorText);
                     if (res.status === 401) {
                         throw new Error('Invalid or missing API key. Please check your API key in Settings and make sure it\'s valid. You may need to generate a new API key at venice.ai/settings/api');
                     }
@@ -789,6 +818,12 @@ Output ONLY the complete HTML code, nothing else. Start with <!DOCTYPE html> and
                 }
 
                 const data = await res.json();
+                console.log('API Response:', data);
+
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error('Invalid API response format. Response: ' + JSON.stringify(data));
+                }
+
                 let gameCode = data.choices[0].message.content;
 
                 // Extract HTML if wrapped in code blocks
