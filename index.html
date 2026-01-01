@@ -546,35 +546,75 @@
                     output.innerHTML = `<img src="${imageUrl}" alt="Generated image">`;
 
                 } else if (currentMode === 'video') {
-                    // Video API endpoint not yet documented - try common patterns
-                    output.innerHTML = '<div class="loading">Generating video... This may take a few minutes.</div>';
+                    output.innerHTML = '<div class="loading">Queuing video generation...</div>';
 
-                    const requestBody = {
+                    // Step 1: Queue video generation
+                    const queueBody = {
                         prompt: prompt,
                         model: model
                     };
-                    console.log('Video request:', settings.apiUrl + '/video/generate', requestBody);
+                    console.log('Video queue:', settings.apiUrl + '/video/queue', queueBody);
 
-                    const res = await fetch(settings.apiUrl + '/video/generate', {
+                    const queueRes = await fetch(settings.apiUrl + '/video/queue', {
                         method: 'POST',
                         headers: {
                             'Authorization': 'Bearer ' + settings.apiKey,
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(requestBody)
+                        body: JSON.stringify(queueBody)
                     });
 
-                    if (!res.ok) {
-                        const errorText = await res.text();
-                        console.error('Video API Error:', res.status, errorText);
-                        throw new Error(`Video generation not available yet. Check <a href="https://docs.venice.ai" target="_blank">docs.venice.ai</a> for updates.`);
+                    if (!queueRes.ok) {
+                        const errorText = await queueRes.text();
+                        console.error('Video queue error:', queueRes.status, errorText);
+                        if (queueRes.status === 404) {
+                            throw new Error('Video generation not available with your API key. Visit <a href="https://venice.ai/account" target="_blank" style="color: #ff6b6b;">venice.ai/account</a> to enable it.');
+                        }
+                        throw new Error(`Queue error: ${queueRes.status} - ${errorText}`);
                     }
 
-                    const data = await res.json();
-                    console.log('Video response:', data);
-                    const videoUrl = data.url || data.video_url;
+                    const queueData = await queueRes.json();
+                    const requestId = queueData.request_id || queueData.id;
+                    console.log('Video queued:', requestId);
 
-                    if (!videoUrl) throw new Error('No video URL in response');
+                    if (!requestId) throw new Error('No request ID from queue');
+
+                    // Step 2: Poll for completion
+                    output.innerHTML = '<div class="loading">Generating video...<br><small>Request: ' + requestId.substring(0, 8) + '...</small></div>';
+
+                    let videoUrl = null;
+                    let attempts = 0;
+                    const maxAttempts = 60; // 5 minutes
+
+                    while (!videoUrl && attempts < maxAttempts) {
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+
+                        const retrieveRes = await fetch(settings.apiUrl + '/video/retrieve', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': 'Bearer ' + settings.apiKey,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ request_id: requestId })
+                        });
+
+                        if (retrieveRes.ok) {
+                            const retrieveData = await retrieveRes.json();
+                            console.log('Video status:', retrieveData);
+
+                            if (retrieveData.status === 'completed' && retrieveData.url) {
+                                videoUrl = retrieveData.url;
+                            } else if (retrieveData.status === 'failed') {
+                                throw new Error('Generation failed: ' + (retrieveData.error || 'Unknown'));
+                            }
+                        }
+
+                        attempts++;
+                        const pct = Math.round((attempts / maxAttempts) * 100);
+                        output.innerHTML = '<div class="loading">Generating video... ' + pct + '%<br><small>Attempt ' + attempts + '/' + maxAttempts + '</small></div>';
+                    }
+
+                    if (!videoUrl) throw new Error('Video generation timed out');
 
                     output.innerHTML = `
                         <video controls autoplay>
