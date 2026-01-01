@@ -327,6 +327,7 @@
             <button class="save-btn" onclick="saveSettings()">Save Settings</button>
             <button class="save-btn" onclick="testImageAPI()" style="background: #333; margin-top: 10px;">Test Image Generation</button>
             <button class="save-btn" onclick="testVideoAPI()" style="background: #444; margin-top: 10px;">Test Video Generation</button>
+            <button class="save-btn" onclick="showAllModels()" style="background: #555; margin-top: 10px;">Debug: Show All Available Models</button>
             <div id="settingsMsg"></div>
         </div>
     </div>
@@ -745,7 +746,7 @@
                 });
 
                 if (videoModels.length === 0) {
-                    msgDiv.innerHTML = '<div class="error">❌ No video models available.<br><br>Your API key may not have access to video generation.<br><br>Visit <a href="https://venice.ai/settings/api" target="_blank" style="color: #ff6b6b;">venice.ai/settings/api</a> to check your account.</div>';
+                    msgDiv.innerHTML = '<div class="error">❌ No video models available.<br><br>Your API key may not have access to video generation.<br><br><strong>Total models found:</strong> ' + allModels.length + '<br><br>Click "Debug: Show All Available Models" to see what you can access.<br><br>Visit <a href="https://venice.ai/settings/api" target="_blank" style="color: #ff6b6b;">venice.ai/settings/api</a> to regenerate your API key with video access.</div>';
                     return;
                 }
 
@@ -784,6 +785,86 @@
                 }
             } catch (e) {
                 msgDiv.innerHTML = `<div class="error">Test failed: ${e.message}</div>`;
+            }
+        }
+
+        async function showAllModels() {
+            const msgDiv = document.getElementById('settingsMsg');
+            const key = document.getElementById('apiKeyInput').value.trim();
+            const url = document.getElementById('apiUrlInput').value.trim();
+
+            if (!key) {
+                msgDiv.innerHTML = '<div class="error">Enter API key first</div>';
+                return;
+            }
+
+            msgDiv.innerHTML = '<div class="loading">Fetching all models...</div>';
+
+            try {
+                const modelsRes = await fetch(url + '/models', {
+                    headers: { 'Authorization': 'Bearer ' + key }
+                });
+
+                if (!modelsRes.ok) {
+                    throw new Error('Failed to fetch models: ' + modelsRes.status);
+                }
+
+                const modelsData = await modelsRes.json();
+                const allModels = modelsData.data || [];
+
+                // Categorize models
+                const videoModels = allModels.filter(m => {
+                    const id = m.id.toLowerCase();
+                    return id.includes('video') || id.includes('wan') || id.includes('kling') ||
+                           id.includes('veo') || id.includes('ltx') || id.includes('longcat') ||
+                           id.includes('sora') || id.includes('ovi');
+                });
+
+                const imageModels = allModels.filter(m => {
+                    const id = m.id.toLowerCase();
+                    return id.includes('flux') || id.includes('stable') || id.includes('sd') ||
+                           id.includes('dall-e') || id.includes('image') || id.includes('qwen') ||
+                           id.includes('hidream') || id.includes('lustify') || id.includes('seedream');
+                });
+
+                const textModels = allModels.filter(m => !videoModels.includes(m) && !imageModels.includes(m));
+
+                let html = '<div style="background: #1a1a1a; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto; text-align: left;">';
+                html += '<h3 style="margin: 0 0 10px 0;">Models Available to Your API Key</h3>';
+
+                html += '<p><strong>Total Models:</strong> ' + allModels.length + '</p>';
+
+                html += '<p style="color: #4a9eff;"><strong>Video Models (' + videoModels.length + '):</strong></p>';
+                if (videoModels.length > 0) {
+                    html += '<ul style="margin: 5px 0; padding-left: 20px;">';
+                    videoModels.forEach(m => html += '<li>' + m.id + '</li>');
+                    html += '</ul>';
+                } else {
+                    html += '<p style="color: #ff6b6b;">❌ No video models available</p>';
+                }
+
+                html += '<p style="color: #4a9eff;"><strong>Image Models (' + imageModels.length + '):</strong></p>';
+                if (imageModels.length > 0) {
+                    html += '<ul style="margin: 5px 0; padding-left: 20px;">';
+                    imageModels.slice(0, 10).forEach(m => html += '<li>' + m.id + '</li>');
+                    if (imageModels.length > 10) html += '<li>... and ' + (imageModels.length - 10) + ' more</li>';
+                    html += '</ul>';
+                } else {
+                    html += '<p style="color: #ff6b6b;">❌ No image models available</p>';
+                }
+
+                html += '<p style="color: #4a9eff;"><strong>Text Models (' + textModels.length + '):</strong></p>';
+                if (textModels.length > 0) {
+                    html += '<ul style="margin: 5px 0; padding-left: 20px;">';
+                    textModels.slice(0, 10).forEach(m => html += '<li>' + m.id + '</li>');
+                    if (textModels.length > 10) html += '<li>... and ' + (textModels.length - 10) + ' more</li>';
+                    html += '</ul>';
+                }
+
+                html += '</div>';
+                msgDiv.innerHTML = html;
+            } catch (e) {
+                msgDiv.innerHTML = `<div class="error">Failed to fetch models: ${e.message}</div>`;
             }
         }
 
