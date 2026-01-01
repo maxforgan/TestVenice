@@ -732,8 +732,14 @@
                 return;
             }
 
-            if (!settings.apiKey) {
-                statusDiv.innerHTML = '<div class="error">Please set your API key in Settings first</div>';
+            // Reload settings from localStorage to ensure we have the latest API key
+            const saved = localStorage.getItem('veniceSettings');
+            if (saved) {
+                settings = JSON.parse(saved);
+            }
+
+            if (!settings.apiKey || settings.apiKey.trim() === '') {
+                statusDiv.innerHTML = '<div class="error">❌ No API key found.<br><br>Please set your Venice API key first.<br><br><button class="save-btn" onclick="closeGames(); openSettings();" style="margin-top: 10px;">Open Settings</button></div>';
                 return;
             }
 
@@ -775,7 +781,11 @@ Output ONLY the complete HTML code, nothing else. Start with <!DOCTYPE html> and
                 });
 
                 if (!res.ok) {
-                    throw new Error('API error: ' + res.status);
+                    const errorText = await res.text();
+                    if (res.status === 401) {
+                        throw new Error('Invalid or missing API key. Please check your API key in Settings and make sure it\'s valid. You may need to generate a new API key at venice.ai/settings/api');
+                    }
+                    throw new Error('API error ' + res.status + ': ' + errorText);
                 }
 
                 const data = await res.json();
