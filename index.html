@@ -505,6 +505,19 @@
                     Find your character ID at <a href="https://venice.ai/characters" target="_blank" style="color: #fff;">venice.ai/characters</a>
                 </small>
             </div>
+
+            <div class="form-group" style="border-top: 1px solid #333; padding-top: 20px; margin-top: 20px;">
+                <label>Skills</label>
+                <small style="color: #666; display: block; margin-bottom: 10px;">
+                    Upload text files (.txt, .md) containing instructions or knowledge for the AI
+                </small>
+                <input type="file" id="skillFileInput" accept=".txt,.md" multiple style="display: none;" onchange="handleSkillUpload(event)">
+                <button class="save-btn" onclick="document.getElementById('skillFileInput').click()" style="background: #4a9eff; margin-bottom: 10px;">
+                    📎 Upload Skills
+                </button>
+                <div id="skillsList" style="margin-top: 10px;"></div>
+            </div>
+
             <button class="save-btn" onclick="saveSettings()">Save Settings</button>
             <button class="save-btn" onclick="testImageAPI()" style="background: #333; margin-top: 10px;">Test Image Generation</button>
             <button class="save-btn" onclick="showAllModels()" style="background: #444; margin-top: 10px;">Debug: Show All Available Models</button>
@@ -514,7 +527,7 @@
 
     <script>
         let currentMode = 'text';
-        let settings = { apiKey: '', apiUrl: 'https://api.venice.ai/api/v1', characterId: '' };
+        let settings = { apiKey: '', apiUrl: 'https://api.venice.ai/api/v1', characterId: '', skills: [] };
         let chatHistory = [];
 
         // Load settings
@@ -709,6 +722,17 @@
 
                     chatHistory.push({ role: 'user', content: prompt });
 
+                    // Prepare messages with skills context if available
+                    let messages = chatHistory;
+                    const skillsContext = getSkillsContext();
+                    if (skillsContext && chatHistory.length === 1) {
+                        // First message - prepend system message with skills
+                        messages = [
+                            { role: 'system', content: 'You are a helpful AI assistant.' + skillsContext },
+                            ...chatHistory
+                        ];
+                    }
+
                     const res = await fetch(settings.apiUrl + '/chat/completions', {
                         method: 'POST',
                         headers: {
@@ -717,7 +741,7 @@
                         },
                         body: JSON.stringify({
                             model: model,
-                            messages: chatHistory
+                            messages: messages
                         })
                     });
 
@@ -777,6 +801,17 @@
 
                     chatHistory.push({ role: 'user', content: prompt });
 
+                    // Prepare messages with skills context if available
+                    let messages = chatHistory;
+                    const skillsContext = getSkillsContext();
+                    if (skillsContext && chatHistory.length === 1) {
+                        // First message - prepend system message with skills
+                        messages = [
+                            { role: 'system', content: 'You are a professional investment banker.' + skillsContext },
+                            ...chatHistory
+                        ];
+                    }
+
                     const res = await fetch(settings.apiUrl + '/chat/completions', {
                         method: 'POST',
                         headers: {
@@ -785,7 +820,7 @@
                         },
                         body: JSON.stringify({
                             model: model,
-                            messages: chatHistory,
+                            messages: messages,
                             character_id: settings.characterId
                         })
                     });
@@ -818,6 +853,7 @@
             document.getElementById('apiKeyInput').value = settings.apiKey;
             document.getElementById('apiUrlInput').value = settings.apiUrl;
             document.getElementById('characterIdInput').value = settings.characterId || '';
+            renderSkillsList();
         }
 
         function closeSettings() {
@@ -849,6 +885,79 @@
 
         function closeMenu() {
             document.getElementById('menuModal').classList.remove('active');
+        }
+
+        // Skills Management
+        async function handleSkillUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            for (const file of files) {
+                try {
+                    const text = await file.text();
+                    const skill = {
+                        name: file.name,
+                        content: text,
+                        uploadedAt: new Date().toISOString()
+                    };
+
+                    // Add to settings
+                    if (!settings.skills) settings.skills = [];
+                    settings.skills.push(skill);
+
+                    console.log('Skill uploaded:', file.name);
+                } catch (e) {
+                    console.error('Error reading file:', e);
+                    alert('Error reading file: ' + file.name);
+                }
+            }
+
+            // Save and refresh UI
+            localStorage.setItem('veniceSettings', JSON.stringify(settings));
+            renderSkillsList();
+            event.target.value = ''; // Reset file input
+        }
+
+        function renderSkillsList() {
+            const container = document.getElementById('skillsList');
+            if (!settings.skills || settings.skills.length === 0) {
+                container.innerHTML = '<div style="color: #666; font-size: 13px; font-style: italic;">No skills uploaded yet</div>';
+                return;
+            }
+
+            let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
+            settings.skills.forEach((skill, index) => {
+                html += `
+                    <div style="background: #1a1a1a; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 13px; font-weight: 500;">${skill.name}</div>
+                            <div style="font-size: 11px; color: #666;">${Math.round(skill.content.length / 1000)}KB</div>
+                        </div>
+                        <button onclick="removeSkill(${index})" style="background: #ff4444; border: none; color: #fff; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function removeSkill(index) {
+            if (confirm('Remove this skill?')) {
+                settings.skills.splice(index, 1);
+                localStorage.setItem('veniceSettings', JSON.stringify(settings));
+                renderSkillsList();
+            }
+        }
+
+        function getSkillsContext() {
+            if (!settings.skills || settings.skills.length === 0) return '';
+
+            let context = '\n\n<skills>\n';
+            settings.skills.forEach(skill => {
+                context += `<skill name="${skill.name}">\n${skill.content}\n</skill>\n\n`;
+            });
+            context += '</skills>\n\nUse the skills provided above when relevant to answer the user\'s questions.';
+            return context;
         }
 
         async function testImageAPI() {
