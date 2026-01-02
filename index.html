@@ -448,7 +448,7 @@
             <div class="mode-tabs">
                 <button class="mode-tab active" data-mode="text" onclick="switchMode('text')">💬 Text</button>
                 <button class="mode-tab" data-mode="image" onclick="switchMode('image')">🖼 Image</button>
-                <button class="mode-tab" data-mode="video" onclick="switchMode('video')">🎬 Video</button>
+                <button class="mode-tab" data-mode="character" onclick="switchMode('character')">💼 Investment Banker</button>
             </div>
             <div class="input-wrapper">
                 <div class="input-content">
@@ -473,14 +473,10 @@
                 <h2>Menu</h2>
                 <button class="close-btn" onclick="closeMenu()">×</button>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 15px;">
-                <button class="save-btn" onclick="openGames()" style="background: #4a9eff; font-size: 16px; padding: 15px;">
-                    🎮 Create Games
-                </button>
-                <button class="save-btn" onclick="closeMenu()" style="background: #333; font-size: 16px; padding: 15px;">
-                    Close Menu
-                </button>
-            </div>
+            <p style="color: #999; margin-bottom: 20px;">More features coming soon...</p>
+            <button class="save-btn" onclick="closeMenu()" style="background: #333; font-size: 16px; padding: 15px;">
+                Close Menu
+            </button>
         </div>
     </div>
 
@@ -502,47 +498,23 @@
                 <label>API Base URL</label>
                 <input type="text" id="apiUrlInput" value="https://api.venice.ai/api/v1">
             </div>
+            <div class="form-group">
+                <label>Investment Banker Character ID</label>
+                <input type="text" id="characterIdInput" placeholder="Enter your Venice character ID">
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    Find your character ID at <a href="https://venice.ai/characters" target="_blank" style="color: #fff;">venice.ai/characters</a>
+                </small>
+            </div>
             <button class="save-btn" onclick="saveSettings()">Save Settings</button>
             <button class="save-btn" onclick="testImageAPI()" style="background: #333; margin-top: 10px;">Test Image Generation</button>
-            <button class="save-btn" onclick="testVideoAPI()" style="background: #444; margin-top: 10px;">Test Video Generation</button>
-            <button class="save-btn" onclick="showAllModels()" style="background: #555; margin-top: 10px;">Debug: Show All Available Models</button>
+            <button class="save-btn" onclick="showAllModels()" style="background: #444; margin-top: 10px;">Debug: Show All Available Models</button>
             <div id="settingsMsg"></div>
-        </div>
-    </div>
-
-    <!-- Games Modal -->
-    <div class="modal" id="gamesModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🎮 Create a Mobile Game</h2>
-                <button class="close-btn" onclick="closeGames()">×</button>
-            </div>
-            <p style="color: #999; margin-bottom: 20px;">Choose a game type or describe your own custom game!</p>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-                <button class="save-btn" onclick="selectGameType('sudoku')" style="background: #ff6b6b; font-size: 14px; padding: 12px;">
-                    🧩 Sudoku Game
-                </button>
-                <button class="save-btn" onclick="selectGameType('story')" style="background: #51cf66; font-size: 14px; padding: 12px;">
-                    🗺️ Story/Map Game
-                </button>
-            </div>
-
-            <div class="form-group">
-                <label>Game Description</label>
-                <textarea id="gamePromptInput" placeholder="Example: Create a simple flappy bird clone with a rocket ship" style="width: 100%; min-height: 120px; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; font-family: inherit; font-size: 15px;"></textarea>
-            </div>
-            <button class="save-btn" onclick="generateGame()" style="background: #4a9eff; font-size: 16px;">
-                Generate Game
-            </button>
-            <div id="gameStatus" style="margin-top: 20px;"></div>
-            <div id="gameContainer" style="margin-top: 20px;"></div>
         </div>
     </div>
 
     <script>
         let currentMode = 'text';
-        let settings = { apiKey: '', apiUrl: 'https://api.venice.ai/api/v1' };
+        let settings = { apiKey: '', apiUrl: 'https://api.venice.ai/api/v1', characterId: '' };
         let chatHistory = [];
 
         // Load settings
@@ -677,15 +649,17 @@
                     });
                     // If API doesn't return image models, use hardcoded list
                     models = filtered.length > 0 ? filtered : knownImageModels;
-                } else if (currentMode === 'video') {
+                } else if (currentMode === 'character') {
+                    // For character mode, use the same models as text mode
                     const filtered = allModels.filter(m => {
                         const id = m.id.toLowerCase();
-                        return id.includes('video') || id.includes('wan') || id.includes('kling') ||
-                               id.includes('veo') || id.includes('ltx') || id.includes('longcat') ||
-                               id.includes('sora') || id.includes('ovi') || id.includes('img2vid');
+                        // Exclude image models
+                        return !id.includes('flux') && !id.includes('stable') && !id.includes('sd') &&
+                               !id.includes('dall-e') && !id.includes('image') &&
+                               !id.includes('qwen-image') && !id.includes('hidream') && !id.includes('lustify') &&
+                               !id.includes('seedream') && !id.includes('nano') && !id.includes('z-image');
                     });
-                    // If API doesn't return video models, use hardcoded list
-                    models = filtered.length > 0 ? filtered : knownVideoModels;
+                    models = filtered.length > 0 ? filtered : allModels;
                 }
 
                 console.log('Filtered models for', currentMode + ':', models.length);
@@ -794,84 +768,39 @@
 
                     output.innerHTML = `<img src="${imageUrl}" alt="Generated image">`;
 
-                } else if (currentMode === 'video') {
-                    output.innerHTML = '<div class="loading">Queuing video generation...</div>';
+                } else if (currentMode === 'character') {
+                    if (!settings.characterId) {
+                        throw new Error('Please set your Investment Banker Character ID in Settings first');
+                    }
 
-                    // Step 1: Queue video generation
-                    const queueBody = {
-                        prompt: prompt,
-                        model: model,
-                        duration: "5s",  // Required: "5s" or "10s"
-                        resolution: "720p",  // Default: "1080p", "720p", or "480p"
-                        audio: true  // Generate audio
-                    };
-                    console.log('Video queue:', settings.apiUrl + '/video/queue', queueBody);
+                    output.innerHTML = '<div class="loading">Consulting with your investment banker...</div>';
 
-                    const queueRes = await fetch(settings.apiUrl + '/video/queue', {
+                    chatHistory.push({ role: 'user', content: prompt });
+
+                    const res = await fetch(settings.apiUrl + '/chat/completions', {
                         method: 'POST',
                         headers: {
                             'Authorization': 'Bearer ' + settings.apiKey,
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(queueBody)
+                        body: JSON.stringify({
+                            model: model,
+                            messages: chatHistory,
+                            character_id: settings.characterId
+                        })
                     });
 
-                    if (!queueRes.ok) {
-                        const errorText = await queueRes.text();
-                        console.error('Video queue error:', queueRes.status, errorText);
-                        if (queueRes.status === 404) {
-                            throw new Error('Video generation not available with your API key. Visit <a href="https://venice.ai/account" target="_blank" style="color: #ff6b6b;">venice.ai/account</a> to enable it.');
-                        }
-                        throw new Error(`Queue error: ${queueRes.status} - ${errorText}`);
-                    }
+                    if (!res.ok) throw new Error('API error: ' + res.status);
 
-                    const queueData = await queueRes.json();
-                    const requestId = queueData.request_id || queueData.id;
-                    console.log('Video queued:', requestId);
-
-                    if (!requestId) throw new Error('No request ID from queue');
-
-                    // Step 2: Poll for completion
-                    output.innerHTML = '<div class="loading">Generating video...<br><small>Request: ' + requestId.substring(0, 8) + '...</small></div>';
-
-                    let videoUrl = null;
-                    let attempts = 0;
-                    const maxAttempts = 60; // 5 minutes
-
-                    while (!videoUrl && attempts < maxAttempts) {
-                        await new Promise(resolve => setTimeout(resolve, 5000));
-
-                        const retrieveRes = await fetch(settings.apiUrl + '/video/retrieve', {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': 'Bearer ' + settings.apiKey,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ request_id: requestId })
-                        });
-
-                        if (retrieveRes.ok) {
-                            const retrieveData = await retrieveRes.json();
-                            console.log('Video status:', retrieveData);
-
-                            if (retrieveData.status === 'completed' && retrieveData.url) {
-                                videoUrl = retrieveData.url;
-                            } else if (retrieveData.status === 'failed') {
-                                throw new Error('Generation failed: ' + (retrieveData.error || 'Unknown'));
-                            }
-                        }
-
-                        attempts++;
-                        const pct = Math.round((attempts / maxAttempts) * 100);
-                        output.innerHTML = '<div class="loading">Generating video... ' + pct + '%<br><small>Attempt ' + attempts + '/' + maxAttempts + '</small></div>';
-                    }
-
-                    if (!videoUrl) throw new Error('Video generation timed out');
+                    const data = await res.json();
+                    const reply = data.choices[0].message.content;
+                    chatHistory.push({ role: 'assistant', content: reply });
 
                     output.innerHTML = `
-                        <video controls autoplay>
-                            <source src="${videoUrl}" type="video/mp4">
-                        </video>
+                        <div style="background: #1a1a1a; padding: 20px; border-radius: 12px; white-space: pre-wrap;">
+                            <div style="color: #4a9eff; font-weight: 600; margin-bottom: 10px;">💼 Investment Banker</div>
+                            ${reply}
+                        </div>
                     `;
                 }
 
@@ -888,6 +817,7 @@
             document.getElementById('settingsModal').classList.add('active');
             document.getElementById('apiKeyInput').value = settings.apiKey;
             document.getElementById('apiUrlInput').value = settings.apiUrl;
+            document.getElementById('characterIdInput').value = settings.characterId || '';
         }
 
         function closeSettings() {
@@ -897,6 +827,7 @@
         function saveSettings() {
             settings.apiKey = document.getElementById('apiKeyInput').value.trim();
             settings.apiUrl = document.getElementById('apiUrlInput').value.trim();
+            settings.characterId = document.getElementById('characterIdInput').value.trim();
 
             if (!settings.apiKey) {
                 document.getElementById('settingsMsg').innerHTML = '<div class="error">Enter API key</div>';
@@ -918,177 +849,6 @@
 
         function closeMenu() {
             document.getElementById('menuModal').classList.remove('active');
-        }
-
-        function openGames() {
-            closeMenu();
-            document.getElementById('gamesModal').classList.add('active');
-        }
-
-        function closeGames() {
-            document.getElementById('gamesModal').classList.remove('active');
-        }
-
-        function selectGameType(type) {
-            const promptInput = document.getElementById('gamePromptInput');
-
-            if (type === 'sudoku') {
-                promptInput.value = 'Create an interactive Sudoku puzzle game with:\n- 9x9 grid with proper sudoku rules\n- Difficulty selector (Easy, Medium, Hard)\n- Number input buttons\n- Check solution button\n- Hint system\n- Timer\n- Clean, mobile-friendly interface with touch support\n- Highlight selected cell and related cells\n- Show errors when invalid numbers are placed';
-            } else if (type === 'story') {
-                promptInput.value = 'Create an interactive story-based adventure game with:\n- Multiple choice decisions that affect the story\n- A simple map showing player location\n- Inventory system for items\n- Character stats (health, items collected)\n- At least 5 different story scenarios\n- Mobile-friendly touch interface\n- Save/load progress feature\n- Engaging storyline with meaningful choices\n- Visual indicators for different locations';
-            }
-        }
-
-        async function generateGame() {
-            const prompt = document.getElementById('gamePromptInput').value.trim();
-            const statusDiv = document.getElementById('gameStatus');
-            const containerDiv = document.getElementById('gameContainer');
-
-            if (!prompt) {
-                statusDiv.innerHTML = '<div class="error">Please describe the game you want to create</div>';
-                return;
-            }
-
-            // Reload settings from localStorage to ensure we have the latest API key
-            const saved = localStorage.getItem('veniceSettings');
-            if (saved) {
-                settings = JSON.parse(saved);
-            }
-
-            if (!settings.apiKey || settings.apiKey.trim() === '') {
-                statusDiv.innerHTML = '<div class="error">❌ No API key found.<br><br>Please set your Venice API key first.<br><br><button class="save-btn" onclick="closeGames(); openSettings();" style="margin-top: 10px;">Open Settings</button></div>';
-                return;
-            }
-
-            statusDiv.innerHTML = '<div class="loading">Generating your game... This may take a moment.</div>';
-            containerDiv.innerHTML = '';
-
-            try {
-                // First, let's get a valid text model
-                statusDiv.innerHTML = '<div class="loading">Finding best AI model for game generation...</div>';
-
-                const modelsRes = await fetch(settings.apiUrl + '/models', {
-                    headers: { 'Authorization': 'Bearer ' + settings.apiKey }
-                });
-
-                if (!modelsRes.ok) {
-                    throw new Error('Failed to fetch models. Status: ' + modelsRes.status);
-                }
-
-                const modelsData = await modelsRes.json();
-                const allModels = modelsData.data || [];
-
-                // Find a good text model (prefer llama-3.3-70b, claude, or gpt-4)
-                let gameModel = allModels.find(m => m.id === 'llama-3.3-70b');
-                if (!gameModel) gameModel = allModels.find(m => m.id.includes('claude'));
-                if (!gameModel) gameModel = allModels.find(m => m.id.includes('gpt-4'));
-                if (!gameModel) gameModel = allModels.find(m => m.id.includes('llama'));
-                if (!gameModel) gameModel = allModels[0]; // fallback to first available
-
-                if (!gameModel) {
-                    throw new Error('No text models available for your API key');
-                }
-
-                console.log('Using model for game generation:', gameModel.id);
-                statusDiv.innerHTML = '<div class="loading">Generating your game with ' + gameModel.id + '... This may take a moment.</div>';
-
-                const systemPrompt = `You are an expert HTML5 game developer. Create a complete, playable mobile game based on the user's description.
-
-IMPORTANT REQUIREMENTS:
-1. Generate a COMPLETE, SELF-CONTAINED HTML file with embedded CSS and JavaScript
-2. The game must work on mobile devices (touch controls)
-3. Use HTML5 Canvas for rendering
-4. Include touch event handlers for mobile
-5. Make it fun and visually appealing
-6. Include a score display
-7. Add simple sound effects using Web Audio API if appropriate
-8. Make sure the game is responsive and fits mobile screens
-9. Include a "Play Again" button when game ends
-10. Use only vanilla JavaScript - no external libraries
-
-Output ONLY the complete HTML code, nothing else. Start with <!DOCTYPE html> and end with </html>.`;
-
-                const res = await fetch(settings.apiUrl + '/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + settings.apiKey,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: gameModel.id,
-                        messages: [
-                            { role: 'system', content: systemPrompt },
-                            { role: 'user', content: prompt }
-                        ],
-                        temperature: 0.7,
-                        max_tokens: 4000
-                    })
-                });
-
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    console.error('API Error Response:', errorText);
-                    if (res.status === 401) {
-                        throw new Error('Invalid or missing API key. Please check your API key in Settings and make sure it\'s valid. You may need to generate a new API key at venice.ai/settings/api');
-                    }
-                    throw new Error('API error ' + res.status + ': ' + errorText);
-                }
-
-                const data = await res.json();
-                console.log('API Response:', data);
-
-                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-                    throw new Error('Invalid API response format. Response: ' + JSON.stringify(data));
-                }
-
-                let gameCode = data.choices[0].message.content;
-
-                // Extract HTML if wrapped in code blocks
-                if (gameCode.includes('```html')) {
-                    gameCode = gameCode.split('```html')[1].split('```')[0].trim();
-                } else if (gameCode.includes('```')) {
-                    gameCode = gameCode.split('```')[1].split('```')[0].trim();
-                }
-
-                // Create iframe to display the game
-                const iframe = document.createElement('iframe');
-                iframe.style.width = '100%';
-                iframe.style.height = '600px';
-                iframe.style.border = '2px solid #333';
-                iframe.style.borderRadius = '12px';
-                iframe.style.background = '#fff';
-
-                containerDiv.innerHTML = '';
-                containerDiv.appendChild(iframe);
-
-                // Write game code to iframe
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                iframeDoc.open();
-                iframeDoc.write(gameCode);
-                iframeDoc.close();
-
-                statusDiv.innerHTML = '<div class="success">✓ Game generated successfully! Play it below.</div>';
-
-                // Add download button
-                const downloadBtn = document.createElement('button');
-                downloadBtn.className = 'save-btn';
-                downloadBtn.textContent = 'Download Game';
-                downloadBtn.style.marginTop = '10px';
-                downloadBtn.onclick = () => {
-                    const blob = new Blob([gameCode], { type: 'text/html' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'my-game.html';
-                    a.click();
-                    URL.revokeObjectURL(url);
-                };
-                statusDiv.appendChild(downloadBtn);
-
-            } catch (e) {
-                statusDiv.innerHTML = '<div class="error">Failed to generate game: ' + e.message + '</div>';
-                console.error('Game generation error:', e);
-            }
         }
 
         async function testImageAPI() {
@@ -1127,82 +887,6 @@ Output ONLY the complete HTML code, nothing else. Start with <!DOCTYPE html> and
                     msgDiv.innerHTML = `<div class="error">API Error: ${res.status}<br>${text}</div>`;
                 } else {
                     msgDiv.innerHTML = '<div class="success">✓ Image generation works! You can use image mode.</div>';
-                }
-            } catch (e) {
-                msgDiv.innerHTML = `<div class="error">Test failed: ${e.message}</div>`;
-            }
-        }
-
-        async function testVideoAPI() {
-            const msgDiv = document.getElementById('settingsMsg');
-            const key = document.getElementById('apiKeyInput').value.trim();
-            const url = document.getElementById('apiUrlInput').value.trim();
-
-            if (!key) {
-                msgDiv.innerHTML = '<div class="error">Enter API key first</div>';
-                return;
-            }
-
-            msgDiv.innerHTML = '<div class="loading">Finding available video models...</div>';
-
-            try {
-                // First, fetch available models to get a valid video model
-                const modelsRes = await fetch(url + '/models', {
-                    headers: { 'Authorization': 'Bearer ' + key }
-                });
-
-                if (!modelsRes.ok) {
-                    throw new Error('Failed to fetch models: ' + modelsRes.status);
-                }
-
-                const modelsData = await modelsRes.json();
-                const allModels = modelsData.data || [];
-
-                // Find video models
-                const videoModels = allModels.filter(m => {
-                    const id = m.id.toLowerCase();
-                    return id.includes('video') || id.includes('wan') || id.includes('kling') ||
-                           id.includes('veo') || id.includes('ltx') || id.includes('longcat') ||
-                           id.includes('sora') || id.includes('ovi');
-                });
-
-                if (videoModels.length === 0) {
-                    msgDiv.innerHTML = '<div class="error">❌ No video models available.<br><br>Your API key may not have access to video generation.<br><br><strong>Total models found:</strong> ' + allModels.length + '<br><br>Click "Debug: Show All Available Models" to see what you can access.<br><br>Visit <a href="https://venice.ai/settings/api" target="_blank" style="color: #ff6b6b;">venice.ai/settings/api</a> to regenerate your API key with video access.</div>';
-                    return;
-                }
-
-                const testModel = videoModels[0].id;
-                msgDiv.innerHTML = '<div class="loading">Testing video generation with model: ' + testModel + '...</div>';
-
-                const res = await fetch(url + '/video/queue', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + key,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        prompt: "a red cube rotating",
-                        model: testModel,
-                        duration: "5s",
-                        resolution: "720p",
-                        audio: true
-                    })
-                });
-
-                const text = await res.text();
-                console.log('Video test response:', res.status, text);
-
-                if (res.status === 404) {
-                    msgDiv.innerHTML = '<div class="error">❌ Video generation endpoint not found (404).<br><br><strong>Response:</strong> ' + text + '<br><br>Visit <a href="https://venice.ai/settings/api" target="_blank" style="color: #ff6b6b;">venice.ai/settings/api</a></div>';
-                } else if (res.status === 401) {
-                    msgDiv.innerHTML = '<div class="error">❌ Unauthorized (401) - Check your API key</div>';
-                } else if (res.status === 402) {
-                    msgDiv.innerHTML = '<div class="error">❌ Payment Required (402) - Insufficient credits/balance<br><br>Visit <a href="https://venice.ai/settings/api" target="_blank" style="color: #ff6b6b;">venice.ai/settings/api</a> to add credits</div>';
-                } else if (!res.ok) {
-                    msgDiv.innerHTML = `<div class="error">API Error: ${res.status}<br><strong>Response:</strong><br>${text}</div>`;
-                } else {
-                    const data = JSON.parse(text);
-                    msgDiv.innerHTML = '<div class="success">✓ Video generation works!<br><br><strong>Model:</strong> ' + testModel + '<br><strong>Request ID:</strong> ' + (data.request_id || data.id || 'Unknown') + '<br><br>You can use video mode.</div>';
                 }
             } catch (e) {
                 msgDiv.innerHTML = `<div class="error">Test failed: ${e.message}</div>`;
