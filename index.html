@@ -9,6 +9,13 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            position: fixed;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #000;
@@ -16,7 +23,6 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -60,9 +66,8 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            overflow-y: auto;
+            overflow: hidden;
             padding: 20px;
-            scroll-behavior: smooth;
         }
 
         .logo {
@@ -419,15 +424,6 @@
         @keyframes pulse {
             0%, 100% { opacity: 0.6; }
             50% { opacity: 1; }
-        }
-
-        /* Hide scrollbar but keep functionality */
-        .main::-webkit-scrollbar {
-            display: none;
-        }
-        .main {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
         }
     </style>
 </head>
