@@ -431,7 +431,6 @@
     <!-- Header -->
     <div class="header">
         <button class="menu-btn" onclick="toggleMenu()">☰</button>
-        <button class="settings-btn" onclick="openSettings()">⚙</button>
     </div>
 
     <!-- Main Content -->
@@ -444,15 +443,14 @@
     <div class="input-area">
         <div class="input-container">
             <div class="mode-tabs">
-                <button class="mode-tab active" data-mode="text" onclick="switchMode('text')">💬 Text</button>
-                <button class="mode-tab" data-mode="image" onclick="switchMode('image')">🖼 Image</button>
-                <button class="mode-tab" data-mode="character" onclick="switchMode('character')">💼 Investment Banker</button>
+                <button class="mode-tab active" data-mode="text" onclick="switchMode('text')">Text</button>
+                <button class="mode-tab" data-mode="image" onclick="switchMode('image')">Image</button>
+                <button class="mode-tab" data-mode="character" onclick="switchMode('character')">Investment Banker</button>
             </div>
             <div class="input-wrapper">
                 <div class="input-content">
                     <textarea id="promptInput" placeholder="Message..." rows="1" oninput="autoResize(this)"></textarea>
                     <div class="model-indicator" onclick="showModelPicker()">
-                        <span>⚡</span>
                         <span id="currentModelName">Loading...</span>
                     </div>
                 </div>
@@ -468,23 +466,10 @@
     <div class="modal" id="menuModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Menu</h2>
+                <h2>Settings</h2>
                 <button class="close-btn" onclick="closeMenu()">×</button>
             </div>
-            <p style="color: #999; margin-bottom: 20px;">More features coming soon...</p>
-            <button class="save-btn" onclick="closeMenu()" style="background: #333; font-size: 16px; padding: 15px;">
-                Close Menu
-            </button>
-        </div>
-    </div>
 
-    <!-- Settings Modal -->
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Settings</h2>
-                <button class="close-btn" onclick="closeSettings()">×</button>
-            </div>
             <div class="form-group">
                 <label>Venice API Key</label>
                 <input type="text" id="apiKeyInput" placeholder="Enter your API key">
@@ -511,7 +496,7 @@
                 </small>
                 <input type="file" id="skillFileInput" accept=".txt,.md" multiple style="display: none;" onchange="handleSkillUpload(event)">
                 <button class="save-btn" onclick="document.getElementById('skillFileInput').click()" style="background: #4a9eff; margin-bottom: 10px;">
-                    📎 Upload Skills
+                    Upload Skills
                 </button>
                 <div id="skillsList" style="margin-top: 10px;"></div>
             </div>
@@ -844,7 +829,7 @@
 
                     output.innerHTML = `
                         <div style="background: #1a1a1a; padding: 20px; border-radius: 12px; white-space: pre-wrap;">
-                            <div style="color: #4a9eff; font-weight: 600; margin-bottom: 10px;">💼 Investment Banker</div>
+                            <div style="color: #4a9eff; font-weight: 600; margin-bottom: 10px;">Investment Banker</div>
                             ${reply}
                         </div>
                     `;
@@ -859,18 +844,6 @@
         }
 
         // Settings
-        function openSettings() {
-            document.getElementById('settingsModal').classList.add('active');
-            document.getElementById('apiKeyInput').value = settings.apiKey;
-            document.getElementById('apiUrlInput').value = settings.apiUrl;
-            document.getElementById('characterIdInput').value = settings.characterId || '';
-            renderSkillsList();
-        }
-
-        function closeSettings() {
-            document.getElementById('settingsModal').classList.remove('active');
-        }
-
         function saveSettings() {
             settings.apiKey = document.getElementById('apiKeyInput').value.trim();
             settings.apiUrl = document.getElementById('apiUrlInput').value.trim();
@@ -892,10 +865,23 @@
 
         function toggleMenu() {
             document.getElementById('menuModal').classList.add('active');
+            document.getElementById('apiKeyInput').value = settings.apiKey;
+            document.getElementById('apiUrlInput').value = settings.apiUrl;
+            document.getElementById('characterIdInput').value = settings.characterId || '';
+            renderSkillsList();
         }
 
         function closeMenu() {
             document.getElementById('menuModal').classList.remove('active');
+        }
+
+        // Alias for backward compatibility
+        function openSettings() {
+            toggleMenu();
+        }
+
+        function closeSettings() {
+            closeMenu();
         }
 
         // Skills Management
