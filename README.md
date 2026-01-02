@@ -47,20 +47,42 @@ echo "VENICE_API_KEY=your-api-key-here" > .env
 
 ### Web Interface
 
-Simply open `index.html` in your web browser:
+#### Quick Setup with config.js (Recommended)
 
+1. Copy the example config file:
+```bash
+cp config.example.js config.js
+```
+
+2. Edit `config.js` and add your Venice API key:
+```javascript
+const CONFIG = {
+    apiKey: 'YOUR_VENICE_API_KEY_HERE',
+    apiUrl: 'https://api.venice.ai/api/v1',
+    characterId: '' // Optional
+};
+```
+
+3. Start a local server:
 ```bash
 # Using Python's built-in server
 python3 -m http.server 8000
 ```
 
-Then navigate to `http://localhost:8000` in your browser.
+4. Navigate to `http://localhost:8000` in your browser
+
+**Note:** `config.js` is in `.gitignore` and won't be committed to git for security.
+
+#### Alternative: Manual Setup
+
+You can also configure the API key directly in the web interface by clicking the ⚙ Settings button.
 
 Features:
-- Configure API settings
-- Interactive chat with AI models
-- Generate images from text prompts
-- Browse available models
+- 💬 **Text Chat**: Chat with various AI models
+- 🖼 **Image Generation**: Create images from text prompts
+- 💼 **Investment Banker Character**: Chat with a specialized investment banker AI
+- 📎 **Skills**: Upload text/markdown files to provide context to the AI
+- Model browsing and selection
 
 #### Using on Mobile
 

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>exposé</title>
+    <!-- Load config.js if it exists (optional, gitignored) -->
+    <script src="config.js" onerror="console.log('No config.js found - using manual settings')"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -530,10 +532,23 @@
         let settings = { apiKey: '', apiUrl: 'https://api.venice.ai/api/v1', characterId: '', skills: [] };
         let chatHistory = [];
 
-        // Load settings
+        // Load settings from config.js if available (highest priority)
+        if (typeof CONFIG !== 'undefined') {
+            console.log('Loading settings from config.js');
+            settings.apiKey = CONFIG.apiKey || '';
+            settings.apiUrl = CONFIG.apiUrl || 'https://api.venice.ai/api/v1';
+            settings.characterId = CONFIG.characterId || '';
+        }
+
+        // Load settings from localStorage (overrides config.js if present)
         const saved = localStorage.getItem('veniceSettings');
         if (saved) {
-            settings = JSON.parse(saved);
+            const savedSettings = JSON.parse(saved);
+            // Only override if localStorage has actual values
+            if (savedSettings.apiKey) settings.apiKey = savedSettings.apiKey;
+            if (savedSettings.apiUrl) settings.apiUrl = savedSettings.apiUrl;
+            if (savedSettings.characterId) settings.characterId = savedSettings.characterId;
+            if (savedSettings.skills) settings.skills = savedSettings.skills;
         }
 
         // Auto-resize textarea
